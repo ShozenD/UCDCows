@@ -29,3 +29,12 @@ ismissing.(df.ypmrr) |> sum
 ismissing.(df.ypmrf) |> sum
 ismissing.(df.ypmlr) |> sum
 ismissing.(df.ypmlf) |> sum
+
+unique(df.bloodrr)
+
+
+df.milkdur
+
+df.interval
+
+df.incomplete
