@@ -1,6 +1,6 @@
 data/*
 papers/*
-resources/*
+resources/teamviewer.txt
 
 Manifest.toml
 Project.toml
