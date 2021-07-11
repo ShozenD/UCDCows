@@ -115,3 +115,14 @@ function parse_all!(d::DataFrame)
     if col == :yieldlf d.ypmlf = d.yieldlf ./ d.mdurS * 60 end
   end
 end
+
+function parse_grain!(df::DataFrame, file::String)
+  # Rename columns
+  rename!(df, [:animal, :feeds, :percent])
+
+  # extract date from current file
+  rgx = r"[a-zA-Z _]+([0-9]+) [0-9]+\.csv"
+  date_str = match(rgx, file).captures[begin]
+  date = Date(date_str, "yyyymmdd")
+  df[!, "date"] .= date
+end
