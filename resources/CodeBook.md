@@ -19,9 +19,9 @@ A dictionary of variable names and their definition
 
 `milkdur` (*Time*): Milking duration
 
-`interval`: 
+`interval` (*Float*): Time interval between the end time of the last milking and the begin time of the current milking
 
-`lastmilkint`:
+`lastmilkint` (*Float*): Time interval between the begin time of the last milking and the begin time of the current milking
 
 ### Conductivity
 `condlf`, `condlr`, `condrf`, `condrr` (*Float*): Raw conductivity for each teat

@@ -1,5 +1,8 @@
-data/*
+data/cleaned/*
+data/raw/*
+
 papers/*
+
 resources/teamviewer.txt
 
 Manifest.toml

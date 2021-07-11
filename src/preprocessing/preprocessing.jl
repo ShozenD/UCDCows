@@ -1,5 +1,9 @@
+using Gadfly: ismissing, isnothing
 using CSV: propertynames, SentinelArrays
 using CSV, DataFrames, Glob, Dates
+
+cd("src/preprocessing")
+include("parsers.jl")
 
 ### Cache the files that have already been processed ###
 """
@@ -32,85 +36,7 @@ function update_cache(file_paths::Vector{String})
   return cache
 end
 
-fpaths = glob("../../data/raw/*")
-cache = update_cache(fpaths)
-
-### Renaming Columns ###
-colnames = Dict(
-  "Animal Number" => "id",
-  "Group Number" => "groupid",
-  "Days In Milk" => "dinmilk",
-  "Lactation Number" => "lactnum",
-  "Date" => "date",
-  "Begin Time" => "tbegin",
-  "End Time" => "tend",
-  "Milk duration (mm:ss)" => "milkdur",
-  "Yield" => "yield",
-  "Yield LF" => "yieldlf",
-  "Yield LR" => "yieldlr",
-  "Yield RF" => "yieldrf",
-  "Yield RR" => "yieldrr",
-  "Interval" => "interval",
-  "Last Milking Interval" => "lastmilkint",
-  "Conductivity RR" => "condrr",
-  "Conductivity RF" => "condrf",
-  "Conductivity LR" => "condlr",
-  "Conductivity LF" => "condlf",
-  "Total Conductivity" => "condtot",
-  "Mean Flow LR" => "flowlr",
-  "Mean Flow LF" => "flowlf",
-  "Mean Flow RR" => "flowrr",
-  "Mean Flow RF" => "flowrf",
-  "Peak Flow LF" => "peaklf", 
-  "Peak Flow LR" => "peaklr", 
-  "Peak Flow RF" => "peakrf", 
-  "Peak Flow RR" => "peakrr", 
-  "MDi" => "mdi", 
-  "Kickoff LF" => "kicklf", 
-  "Kickoff LR" => "kicklr", 
-  "Kickoff RF" => "kickrf", 
-  "Kickoff RR" => "kickrr", 
-  "Blood RF" => "bloodrf", 
-  "Blood RR" => "bloodrr", 
-  "Blood LF" => "bloodlf", 
-  "Blood LR" => "bloodlr", 
-  "Total Blood" => "bloodtot", 
-  "Teats Not Found" => "teats_not_found", 
-  "Smart Pulsation Ratio" => "spr", 
-  "Incomplete" => "incomplete"
-)
-
-### Parseing Time ### 
-function parse_milkdur(x::AbstractArray)
-  if typeof(x[1]) == Time
-    x = Dates.format.(x, "HH:MM:SS")
-    return Time.(x, "MM:SS:ss")
-  else
-    return Time.(x, "MM:SS") 
-  end
-end
-
-parse_date(x::AbstractArray) = Date.(x, "m/d/y")
-function parse_tbegin(x::AbstractArray)
-  x = DateTime.(x, "m/d/y H:MM p")
-  return Dates.Time.(x)
-end 
-parse_tend(x::AbstractArray) = Time.(x, "H:MM p")
-
-function parse_all!(d::DataFrame)
-  rename!(d, colnames)
-
-  for col = propertynames(d)
-    if col == :date d.date = parse_date(d.date) end
-    if col == :tbegin d.tbegin = parse_tbegin(d.tbegin) end
-    if col == :tend d.tend = parse_tend(d.tend) end
-    if col == :milkdur d.tend = parse_milkdur(d.milkdur) end
-  end
-
-  d.tend = d.tbegin + Dates.Minute.(d.tend) + Dates.Second.(d.tend)
-end
-
-### Cleaning Loop ### 
+#-------------------- Cleaning raw files --------------------
 fpaths = glob("../../data/raw/*")
 cache = update_cache(fpaths)
 
@@ -127,6 +53,7 @@ for path in cache.fname
   CSV.write(string("../../data/cleaned/", fname), df)
 end
 
+#-------------------- Combine files and remove duplicaltes --------------------
 cleaned_file_paths = glob("../../data/cleaned/*")
 
 df = CSV.read(cleaned_file_paths[1], DataFrame)
@@ -140,5 +67,5 @@ end
 sort!(df, [:id, :date, :tbegin])
 unique!(df, [:id, :date, :tbegin])
 
+#-------------------- Save to file --------------------
 CSV.write("../../data/analytical/cows-analytic.csv", df)
-
