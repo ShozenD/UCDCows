@@ -44,20 +44,24 @@ cache = update_cache(fpaths)
 for path in cache.fname
   # Read data
   df = CSV.read(path, DataFrame)
-  if occursin("Grain", path)
-    parse_grain!(df, path)
+  try
+    if occursin("Grain", path)
+      parse_grain!(df, path)
 
-    fname = replace(path, "Grain Consumed in VMS_" => "grain_")
-    fname = replace(fname, "raw" => "cleaned")
-    fname = replace(fname, " " => "")
-  else
-    parse_all!(df)
+      fname = replace(path, "Grain Consumed in VMS_" => "grain_")
+      fname = replace(fname, "raw" => "cleaned")
+      fname = replace(fname, " " => "")
+    else
+      parse_all!(df)
 
-    fname = replace(path, "QMPS Daily Milkings Report_" => "milk_")
-    fname = replace(fname, "raw" => "cleaned")
-    fname = replace(fname, " " => "")
-  end
-  CSV.write(string("../../data/cleaned/", fname), df)
+      fname = replace(path, "QMPS Daily Milkings Report_" => "milk_")
+      fname = replace(fname, "raw" => "cleaned")
+      fname = replace(fname, " " => "")
+    end
+    CSV.write(string("../../data/cleaned/", fname), df)
+  catch
+    println("Failed to parse: ", path)
+  end 
 end
 
 #-------------------- Combine files and remove duplicates ----------------------
