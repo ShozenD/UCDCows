@@ -10,6 +10,7 @@ A dictionary of variable names and their definition
 
 ### Time
 `dinmilk` (*Int*): Days in milk
+![dist-dinmilk](figures/dist-dinmilk.png)
 
 `date` (*Date*): Date of the milking
 
@@ -20,11 +21,16 @@ A dictionary of variable names and their definition
 `milkdur` (*Time*): Milking duration
 
 `interval` (*Float*): Time interval between the end time of the last milking and the begin time of the current milking
+![dist-interval](figures/dist-interval.png)
 
 `lastmilkint` (*Float*): Time interval between the begin time of the last milking and the begin time of the current milking
+![dist-lastmilkint](figures/dist-lastmilkint.png)
 
 ### Conductivity
 `condlf`, `condlr`, `condrf`, `condrr` (*Float*): Raw conductivity for each teat
+|Left Front|Left Rear|Right Front|Right Reat|
+|:---:|:---:|:---:|:---:|
+|![dist-condlf](figures/dist-condlf.png)|![dist-condlf](figures/dist-condlr.png)|![dist-condrf](figures/dist-condrf.png)|![dist-condrr](figures/dist-condrr.png)|
 
 `condtot` (*Float*): Total conductivity
 

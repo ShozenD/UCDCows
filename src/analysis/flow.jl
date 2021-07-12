@@ -11,7 +11,6 @@ df.mdurM = round.(df.mdurS, Dates.Minute) .|> Dates.value
 df.mdurS = Dates.value.(df.mdurS)
 
 # Normalize Yield with milking time
-convert(Vector, df.flowrr) # Flow is not yield / duration
 
 df.ypmrr = df.yieldrr ./ df.mdurS * 60
 df.ypmrf = df.yieldrf ./ df.mdurS * 60
@@ -31,10 +30,3 @@ ismissing.(df.ypmlr) |> sum
 ismissing.(df.ypmlf) |> sum
 
 unique(df.bloodrr)
-
-
-df.milkdur
-
-df.interval
-
-df.incomplete
