@@ -1,10 +1,14 @@
 using DataFrames,
+      CategoricalArrays,
       GLM,
+      MixedModels,
       Plots,
       StatsPlots,
       DataFramesMeta,
       CSV,
       Dates
+
+include("reformatting.jl")
 
 # IMPORT DATA ------------------------------------------------------------------
 # move to directory of current file
@@ -16,58 +20,51 @@ df = CSV.read(fname, DataFrame)
 insertcols!(df, 5, :winmilk => ceil.(Int16, df.dinmilk ./ 7))
 
 # MAKE SUB-DATAFRAME -----------------------------------------------------------
-yield = groupby(df, [:id, :winmilk])
-yield = combine(yield, 
-                :lactnum, 
-                :yield => sum => :yield,
-                :date)
-unique!(yield, [:id, :winmilk, :lactnum, :yield])
-yield.logyield = log.(yield.yield)
-describe(yield)
+healthy = remove_unhealthydata(df, 7)
+healthy[!, :id] = categorical(healthy.id)
+healthy[!, :logyield] = log.(healthy.yield)
 
 # PLOTS ------------------------------------------------------------------------
 # We will be making an assumption that our error is normally distributed. We
 # need to checkif logyield follows a normal distribution.
 # ------------------------------------------------------------------------------
-histogram(yield.logyield)
+scatter(healthy.dinmilk, healthy.yield)
+histogram(healthy.logyield)
 
 # SPLIT DATA -------------------------------------------------------------------
 #
 # Train-test split.
-# Train split: All data up until 2 weeks prior.
-# Test split: All data starting from 2 weeks prior
+# Train split: All data up until N days prior.
+# Test split: All data starting from N days prior
 #
-# Note: Data from the date 5/24/2021 cannot be used in train data as it causes
-# multicollinearity issues.
 # ------------------------------------------------------------------------------
-split_date = maximum(yield.date) - Day(14)
-xdate = Date(2021, 5, 24)
-yield_tr = @subset(yield, :date .< split_date, :date .!= xdate)
-yield_te = vcat(@subset(yield, :date .>= split_date),
-                @subset(yield, :date .== xdate))
+split_date = maximum(healthy.date) - Day(45)
+healthy_tr = @subset(healthy, :date .< split_date)
+healthy_te = @subset(healthy, :date .>= split_date)
 
-# FIXED-EFFECTS MODEL 1 --------------------------------------------------------
+# MIXED-EFFECTS MODEL 1 --------------------------------------------------------
 # Initial model: y(n) = a * n^b * exp(-cn)
 # Rearranged model: log(y(n)) = log(a) + b*log(n) - c*n
 # Variables:
 #     Response: :logyield
-#     Predictor: :winmilk
+#     Predictor: :winmilk, :lactnum
 # ------------------------------------------------------------------------------
 # fit model 
-model = lm(@formula(logyield ~ 1 + log(winmilk) + winmilk), yield_tr)
+fm = @formula(logyield ~ 1 + log(dinmilk) + dinmilk + lactnum + (1|id))
+model = fit(MixedModel, fm, healthy_tr)
 a_, b_, c_ = coef(model)
 a, b, c = exp(a_), b_, -c_
 # model analysis
-n_tr = nrow(yield_tr)
+n_tr = nrow(healthy_tr)
 r² = r2(model)
 pred = predict(model)
-err = yield_tr.logyield - pred
+err = healthy_tr.logyield - pred
 mse = sum(err.^2) / (n_tr-2)
-scatter(yield_tr.winmilk, err, c=yield_tr.lactnum)
+scatter(healthy_tr.winmilk, err, c=healthy_tr.lactnum)
 # test model
-n_te = nrow(yield_te)
-pred = predict(model, yield_te)
-err = yield_te.logyield - pred
+n_te = nrow(healthy_te)
+pred = predict(model, healthy_te)
+err = healthy_te.logyield - pred
 mse = sum(err.^2) / (n_te-2)
 
 # MODEL ANALYTICS --------------------------------------------------------------
@@ -84,6 +81,6 @@ mse = sum(err.^2) / (n_te-2)
 # ------------------------------------------------------------------------------
 rng = 1:maximum(yield.winmilk)
 pred = a * rng.^b .* exp.(-c*rng)
-scatter(yield_tr.winmilk, yield_tr.yield, label="train")
-scatter!(yield_te.winmilk, yield_te.yield, label="test")
+scatter(healthy_tr.winmilk, healthy_tr.yield, label="train")
+scatter!(healthy_te.winmilk, healthy_te.yield, label="test")
 plot!(rng, pred, lw=3, c=:black, label="model fit")
