@@ -46,6 +46,8 @@ A dictionary of variable names and their definition
 `condtot` (*Float*): Total conductivity
 ![dist-condtot](figures/dist-condtot.png)
 
+`condmin`, `condmax`: Minimum and maximum conductivity among all teats for that time point
+
 ### Yield
 `yieldlf`, `yieldlr`, `yieldrf`, `yieldrr` (*Float*): Raw yield value for each teat
 |Left Front|Left Rear|
@@ -64,6 +66,8 @@ A dictionary of variable names and their definition
 |Right Front|Right Rear|
 |:---:|:---:|
 |![dist-ypmrf](figures/dist-ypmrf.png)|![dist-ypmrr](figures/dist-ypmrr.png)|
+
+`yieldmax`, `yieldmin`: Minimum and maxiumu yield among all teats for that time point
 
 ### Flow
 `flowlf`, `flowlf`, `flowrr`, `flowrf` (*Float*): Average flow during the milking. **Note**: This value is different from the yield per min. 

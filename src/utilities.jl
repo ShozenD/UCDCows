@@ -1,12 +1,22 @@
 using Statistics, Impute
 
 """
-  minmax_teat(D, i[, teats=[:rr,:rf,:lr,:lf], min=true])
-  minmax_teat(a, b, c, d[, teats=[:rr,:rf,:lr,:lf], min=true])
+  minmax_cond_teat(D, i[, teats=[:lf,:lr,:rf,:rr], min=true])
 
 Finds the teat with the minimum/maximum conductivity for a given time point.
+
+*See also:* `minmax_teat`, `minmax_yield_teat`
 """
-function minmax_teat end
+function minmax_cond_teat end
+
+"""
+  minmax_yield_teat(D, i[, teats=[:lf,:lr,:rf,:rr], min=true])
+
+Finds the teat with the minimum/maximum yield for a given time point.
+
+*See also:* `minmax_teat`, `minmax_cond_teat`
+"""
+function minmax_yield_teat end
 
 function rolling_average(x::AbstractVector, n::Int)
   @assert 1<=n<=length(x)
@@ -29,14 +39,46 @@ function linear_interpolation(x::AbstractVector)
   return convert(Vector{Float64}, y)
 end
 
-function minmax_teat(D::DataFrame, i::Int, teats=[:rr,:rf,:lr,:lf]; min::Bool=true)
-  return minmax_teat(D.condrr[i], D.condrf[i], D.condlr[i], D.condlf[i], teats, min=min)
+function minmax_cond_teat(D::DataFrame; min::Bool=true)
+  C = hcat(D.condlf, D.condlr, D.condrf, D.condrr)
+  T = [minmax_teat(C[i,:]; min=min) for i in 1:size(C,1)]
+  return T
 end
 
-function minmax_teat(a::T,b::T,c::T,d::T, 
-  teats=[:rr,:rf,:lr,:lf];
-  min::Bool= true) where T <: Number
+function minmax_yield_teat(D::DataFrame; min::Bool=true)
+  C = hcat(D.yieldlf, D.yieldlr, D.yieldrf, D.yieldrr)
+  T = [minmax_teat(C[i,:]; min=min) for i in 1:size(C,1)]
+  return T
+end                      
 
-  x = [a,b,c,d]
+function minmax_teat(x::T; min::Bool= true) where T <: AbstractVector{Union{Missing, Float64}}
+  teats=[:lf,:lr,:rf,:rr]
+  x = skipmissing(x)
   min ? teats[argmin(x)] : teats[argmax(x)]
+end
+
+function minmax_cond(D::DataFrame; min::Bool=true)
+  y = Vector{Union{Missing, Float64}}(undef, nrow(D))
+  for i in 1:nrow(D)
+    x = skipmissing([D.condlf[i], D.condlr[i], D.condrf[i], D.condrr[i]])
+    if min
+      y[i] = minimum(x)
+    else
+      y[i] = maximum(x)
+    end
+  end
+  return y
+end
+
+function minmax_yield(D::DataFrame; min::Bool=true)
+  y = Vector{Union{Missing, Float64}}(undef, nrow(D))
+  for i in 1:nrow(D)
+    x = skipmissing([D.yieldlf[i], D.yieldlr[i], D.yieldrf[i], D.yieldrr[i]])
+    if min
+      y[i] = minimum(x)
+    else
+      y[i] = maximum(x)
+    end
+  end
+  return y
 end
