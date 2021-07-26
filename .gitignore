@@ -1,6 +1,9 @@
 *.DS_Store
 
-data/*
+data/analytical/*
+data/cleaned/*
+data/raw/*
+
 papers/*
 
 resources/teamviewer.txt
