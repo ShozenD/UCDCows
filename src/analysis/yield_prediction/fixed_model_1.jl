@@ -4,7 +4,8 @@ using DataFrames,
       StatsPlots,
       DataFramesMeta,
       CSV,
-      Dates
+      Dates,
+      Random
 
 # IMPORT DATA ------------------------------------------------------------------
 # move to directory of current file
@@ -16,13 +17,13 @@ df = CSV.read(fname, DataFrame)
 insertcols!(df, 5, :winmilk => ceil.(Int16, df.dinmilk ./ 7))
 
 # MAKE SUB-DATAFRAME -----------------------------------------------------------
-yield = groupby(df, [:id, :winmilk])
+yield = groupby(df, [:id, :dinmilk])
 yield = combine(yield, 
                 :lactnum, 
                 :yield => sum => :yield,
                 :date)
-unique!(yield, [:id, :winmilk, :lactnum, :yield])
-yield.logyield = log.(yield.yield)
+unique!(yield, [:id, :dinmilk, :lactnum, :yield])
+yield.logyield = log.(yield.yield .+ 1)
 describe(yield)
 
 # PLOTS ------------------------------------------------------------------------
@@ -31,20 +32,29 @@ describe(yield)
 # ------------------------------------------------------------------------------
 histogram(yield.logyield)
 
-# SPLIT DATA -------------------------------------------------------------------
+# SPLIT DATA BY DATE -----------------------------------------------------------
 #
 # Train-test split.
 # Train split: All data up until 2 weeks prior.
 # Test split: All data starting from 2 weeks prior
-#
-# Note: Data from the date 5/24/2021 cannot be used in train data as it causes
-# multicollinearity issues.
 # ------------------------------------------------------------------------------
 split_date = maximum(yield.date) - Day(14)
-xdate = Date(2021, 5, 24)
-yield_tr = @subset(yield, :date .< split_date, :date .!= xdate)
-yield_te = vcat(@subset(yield, :date .>= split_date),
-                @subset(yield, :date .== xdate))
+train_bydate = @subset(yield, :date .< split_date)
+test_bydate = @subset(yield, :date .>= split_date)
+
+# RANDOM SPLIT OF DATA ---------------------------------------------------------
+#
+# Train-test split.
+# Train split: Randomly chosen 80% of data
+# Test split: Remaining 20% of data not in train split
+# ------------------------------------------------------------------------------
+sample_size = nrow(yield)
+rand_order = randperm(sample_size)
+train_rng = rand_order[begin:(floor(Int64, sample_size*0.8))]
+train_byrand = yield[train_rng,:]
+test_rng = rand_order[(floor(Int64, sample_size*0.8)+1):end]
+test_byrand = yield[test_rng,:]
+
 
 # FIXED-EFFECTS MODEL 1 --------------------------------------------------------
 # Initial model: y(n) = a * n^b * exp(-cn)
@@ -52,23 +62,42 @@ yield_te = vcat(@subset(yield, :date .>= split_date),
 # Variables:
 #     Response: :logyield
 #     Predictor: :winmilk
+# 
+# Model fit will be performed on two approaches:
+#     1. Data split by date
+#     2. Data split randomly
 # ------------------------------------------------------------------------------
+
+# Model fit 1 -- data split by date --------------------------------------------
 # fit model 
-model = lm(@formula(logyield ~ 1 + log(winmilk) + winmilk), yield_tr)
-a_, b_, c_ = coef(model)
-a, b, c = exp(a_), b_, -c_
+model = lm(@formula(logyield ~ 1 + log(dinmilk) + dinmilk), train_bydate)
 # model analysis
-n_tr = nrow(yield_tr)
+n_tr = nrow(train_bydate)
 r² = r2(model)
 pred = predict(model)
-err = yield_tr.logyield - pred
+err = train_bydate.logyield - pred
 mse = sum(err.^2) / (n_tr-2)
-scatter(yield_tr.winmilk, err, c=yield_tr.lactnum)
 # test model
-n_te = nrow(yield_te)
-pred = predict(model, yield_te)
-err = yield_te.logyield - pred
+n_te = nrow(test_bydate)
+pred = predict(model, test_bydate)
+err = test_bydate.logyield - pred
 mse = sum(err.^2) / (n_te-2)
+
+# Model fit 2 -- data split randomly -------------------------------------------
+# fit model 
+model = lm(@formula(logyield ~ 1 + log(dinmilk) + dinmilk), train_byrand)
+# model analysis
+n_tr = nrow(train_byrand)
+r² = r2(model)
+pred = predict(model)
+err = train_byrand.logyield - pred
+mse = sum(err.^2) / (n_tr-2)
+# test model
+n_te = nrow(test_byrand)
+pred = predict(model, test_byrand)
+err = test_byrand.logyield - pred
+mse = sum(err.^2) / (n_te-2)
+
 
 # MODEL ANALYTICS --------------------------------------------------------------
 #
@@ -82,8 +111,8 @@ mse = sum(err.^2) / (n_te-2)
 #     - animal [id]
 #     - whether the cow has mastitis
 # ------------------------------------------------------------------------------
-rng = 1:maximum(yield.winmilk)
-pred = a * rng.^b .* exp.(-c*rng)
-scatter(yield_tr.winmilk, yield_tr.yield, label="train")
-scatter!(yield_te.winmilk, yield_te.yield, label="test")
-plot!(rng, pred, lw=3, c=:black, label="model fit")
+# rng = 1:maximum(yield.winmilk)
+# pred = a * rng.^b .* exp.(-c*rng)
+# scatter(yield_tr.winmilk, yield_tr.yield, label="train")
+# scatter!(yield_te.winmilk, yield_te.yield, label="test")
+# plot!(rng, pred, lw=3, c=:black, label="model fit")
