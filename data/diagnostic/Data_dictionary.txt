@@ -1,0 +1,21 @@
+Data dictionary
+
+ID: unique cow's identification
+LACT = lactation number of that cow
+FDAT = date the cow gave birth (Fresh date), this is the start of the current lactation
+DIM = days in milk (# days after calving) when she was sent to the hospital due to any abnormality in her milk, udder, or alertfrom the robots (is she is in the robot barn)
+Quarter: quarter affected. It can be more than one
+Dateok: date she was sent to the hospital –abnormality detected
+Trt_MAST = Treatment given to that cow. I broke this down into the Trt_dec variable
+Trt_dec = Treatment of the cow. If she was treated, in the variable TRT she received a 1.
+	NOTXRORF = no treatment
+	SPCT3 = spectramast (antibiotics) for 3 days
+	SPCT5 =spectramast (antibiotics) for 5 days
+TRT = 1 was treated, 0 not treated
+CULT_res = if a sample was taken for culture, here is the results. I grouped it into the CULT_type variable
+CULT_type
+	GP: gram positive
+	GN: Gram negative
+	MX: mixed
+	NO: no growth
+Trt_REMAST = if she had to be treated because she did not cure from the first treatment. The date of the retreatment is = Dateok

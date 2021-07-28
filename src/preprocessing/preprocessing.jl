@@ -1,6 +1,6 @@
 using Gadfly: ismissing, isnothing
 using CSV: propertynames, SentinelArrays
-using CSV, DataFrames, Glob, Dates
+using CSV, DataFrames, DataFramesMeta, Glob, Dates
 
 cd(@__DIR__)
 include("parsers.jl")
@@ -85,3 +85,4 @@ unique!(milk_df, [:id, :date, :tbegin])
 #-------------------- Save to file ---------------------------------------------
 CSV.write("../../data/analytical/grain-analytic.csv", grain_df)
 CSV.write("../../data/analytical/cows-analytic.csv", milk_df)
+
