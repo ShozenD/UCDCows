@@ -10,6 +10,7 @@ using DataFrames,
       Random
 
 include("reformatting.jl")
+include("utils.jl")
 
 # IMPORT DATA ------------------------------------------------------------------
 # move to directory of current file
@@ -72,31 +73,13 @@ test_byrand = healthy[test_rng,:]
 # fit model 
 fm = @formula(logyield ~ 1 + log(dinmilk) + dinmilk + lactnum + (dinmilk|id) + (1|date))
 model = fit(MixedModel, fm, train_bydate)
-# model analysis
-n_tr = nrow(train_bydate)
-pred = predict(model)
-err = train_bydate.logyield - pred
-mse = sum(err.^2) / (n_tr-dof(model))
-# test model
-n_te = nrow(test_bydate)
-pred = predict(model, test_bydate; new_re_levels=:population)
-err = test_bydate.logyield - pred
-mse = sum(err.^2) / (n_te-dof(model))
+print_modelstatistics(model, train_bydate, test_bydate)
 
 # Model fit 2 -- data split randomly -------------------------------------------
 # fit model 
 fm = @formula(logyield ~ 1 + log(dinmilk) + dinmilk + lactnum + (dinmilk|id) + (1|date))
 model = fit(MixedModel, fm, train_byrand)
-# model analysis
-n_tr = nrow(train_byrand)
-pred = predict(model)
-err = train_byrand.logyield - pred
-mse = sum(err.^2) / (n_tr-dof(model))
-# test model
-n_te = nrow(test_byrand)
-pred = predict(model, test_byrand; new_re_levels=:population)
-err = test_byrand.logyield - pred
-mse = sum(err.^2) / (n_te-dof(model))
+print_modelstatistics(model, train_byrand, test_byrand)
 
 
 # MODEL ANALYTICS --------------------------------------------------------------

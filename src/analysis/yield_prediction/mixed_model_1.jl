@@ -21,17 +21,23 @@ df = CSV.read(fname, DataFrame)
 insertcols!(df, 5, :winmilk => ceil.(Int16, df.dinmilk ./ 7))
 
 # MAKE SUB-DATAFRAME -----------------------------------------------------------
-healthy = remove_unhealthydata(df, 7)
-healthy[!, :id] = categorical(healthy.id)
-healthy[!, :lactnum] = categorical(healthy.lactnum)
-healthy[!, :logyield] = log.(healthy.yield .+ 1)
+yield = groupby(df, [:id, :dinmilk])
+yield = combine(yield, 
+                :lactnum, 
+                :yield => sum => :yield,
+                :date)
+unique!(yield, [:id, :dinmilk, :lactnum, :yield])
+yield.logyield = log.(yield.yield .+ 1)
+yield.id = categorical(yield.id)
+yield.lactnum = categorical(yield.lactnum)
+describe(yield)
 
 # PLOTS ------------------------------------------------------------------------
 # We will be making an assumption that our error is normally distributed. We
 # need to checkif logyield follows a normal distribution.
 # ------------------------------------------------------------------------------
-scatter(healthy.dinmilk, healthy.yield)
-histogram(healthy.logyield)
+scatter(yield.dinmilk, yield.yield)
+histogram(yield.logyield)
 
 # SPLIT DATA BY DATE -----------------------------------------------------------
 #
@@ -39,9 +45,9 @@ histogram(healthy.logyield)
 # Train split: All data up until 2 weeks prior.
 # Test split: All data starting from 2 weeks prior
 # ------------------------------------------------------------------------------
-split_date = maximum(healthy.date) - Day(14)
-train_bydate = @subset(healthy, :date .< split_date)
-test_bydate = @subset(healthy, :date .>= split_date)
+split_date = maximum(yield.date) - Day(14)
+train_bydate = @subset(yield, :date .< split_date)
+test_bydate = @subset(yield, :date .>= split_date)
 
 # RANDOM SPLIT OF DATA ---------------------------------------------------------
 #
@@ -49,12 +55,12 @@ test_bydate = @subset(healthy, :date .>= split_date)
 # Train split: Randomly chosen 80% of data
 # Test split: Remaining 20% of data not in train split
 # ------------------------------------------------------------------------------
-sample_size = nrow(healthy)
+sample_size = nrow(yield)
 rand_order = randperm(sample_size)
 train_rng = rand_order[begin:(floor(Int64, sample_size*0.8))]
-train_byrand = healthy[train_rng,:]
+train_byrand = yield[train_rng,:]
 test_rng = rand_order[(floor(Int64, sample_size*0.8)+1):end]
-test_byrand = healthy[test_rng,:]
+test_byrand = yield[test_rng,:]
 
 # MIXED-EFFECTS MODEL 1 --------------------------------------------------------
 # Initial model: y(n) = a * n^b * exp(-cn)
@@ -72,31 +78,13 @@ test_byrand = healthy[test_rng,:]
 # fit model 
 fm = @formula(logyield ~ 1 + log(dinmilk) + dinmilk + lactnum + (dinmilk|id) + (1|date))
 model = fit(MixedModel, fm, train_bydate)
-# model analysis
-n_tr = nrow(train_bydate)
-pred = predict(model)
-err = train_bydate.logyield - pred
-mse = sum(err.^2) / (n_tr-dof(model))
-# test model
-n_te = nrow(test_bydate)
-pred = predict(model, test_bydate; new_re_levels=:population)
-err = test_bydate.logyield - pred
-mse = sum(err.^2) / (n_te-dof(model))
+print_modelstatistics(model, train_bydate, test_bydate)
 
 # Model fit 2 -- data split randomly -------------------------------------------
 # fit model 
 fm = @formula(logyield ~ 1 + log(dinmilk) + dinmilk + lactnum + (dinmilk|id) + (1|date))
 model = fit(MixedModel, fm, train_byrand)
-# model analysis
-n_tr = nrow(train_byrand)
-pred = predict(model)
-err = train_byrand.logyield - pred
-mse = sum(err.^2) / (n_tr-dof(model))
-# test model
-n_te = nrow(test_byrand)
-pred = predict(model, test_byrand; new_re_levels=:population)
-err = test_byrand.logyield - pred
-mse = sum(err.^2) / (n_te-dof(model))
+print_modelstatistics(model, train_byrand, test_byrand)
 
 
 # MODEL ANALYTICS --------------------------------------------------------------

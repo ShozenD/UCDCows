@@ -7,6 +7,8 @@ using DataFrames,
       Dates,
       Random
 
+include("utils.jl")
+
 # IMPORT DATA ------------------------------------------------------------------
 # move to directory of current file
 cd(@__DIR__)
@@ -71,33 +73,12 @@ test_byrand = yield[test_rng,:]
 # Model fit 1 -- data split by date --------------------------------------------
 # fit model 
 model = lm(@formula(logyield ~ 1 + log(dinmilk) + dinmilk), train_bydate)
-# model analysis
-n_tr = nrow(train_bydate)
-r² = r2(model)
-pred = predict(model)
-err = train_bydate.logyield - pred
-mse = sum(err.^2) / (n_tr-2)
-# test model
-n_te = nrow(test_bydate)
-pred = predict(model, test_bydate)
-err = test_bydate.logyield - pred
-mse = sum(err.^2) / (n_te-2)
+print_modelstatistics(model, train_bydate, test_bydate)
 
 # Model fit 2 -- data split randomly -------------------------------------------
 # fit model 
 model = lm(@formula(logyield ~ 1 + log(dinmilk) + dinmilk), train_byrand)
-# model analysis
-n_tr = nrow(train_byrand)
-r² = r2(model)
-pred = predict(model)
-err = train_byrand.logyield - pred
-mse = sum(err.^2) / (n_tr-2)
-# test model
-n_te = nrow(test_byrand)
-pred = predict(model, test_byrand)
-err = test_byrand.logyield - pred
-mse = sum(err.^2) / (n_te-2)
-
+print_modelstatistics(model, train_byrand, test_byrand)
 
 # MODEL ANALYTICS --------------------------------------------------------------
 #
