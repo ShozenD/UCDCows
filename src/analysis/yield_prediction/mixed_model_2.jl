@@ -57,7 +57,7 @@ train_byrand = healthy[train_rng,:]
 test_rng = rand_order[(floor(Int64, sample_size*0.8)+1):end]
 test_byrand = healthy[test_rng,:]
 
-# MIXED-EFFECTS MODEL 1 --------------------------------------------------------
+# MIXED-EFFECTS MODEL 2 --------------------------------------------------------
 # Initial model: y(n) = a * n^b * exp(-cn)
 # Rearranged model: log(y(n)) = log(a) + b*log(n) - c*n
 # Variables:
