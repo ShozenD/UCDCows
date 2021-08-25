@@ -10,6 +10,7 @@ using DataFrames,
       Random
 
 include("reformatting.jl")
+include("utils.jl")
 
 # IMPORT DATA ------------------------------------------------------------------
 # move to directory of current file
@@ -21,23 +22,17 @@ df = CSV.read(fname, DataFrame)
 insertcols!(df, 5, :winmilk => ceil.(Int16, df.dinmilk ./ 7))
 
 # MAKE SUB-DATAFRAME -----------------------------------------------------------
-yield = groupby(df, [:id, :dinmilk])
-yield = combine(yield, 
-                :lactnum, 
-                :yield => sum => :yield,
-                :date)
-unique!(yield, [:id, :dinmilk, :lactnum, :yield])
-yield.logyield = log.(yield.yield .+ 1)
-yield.id = categorical(yield.id)
-yield.lactnum = categorical(yield.lactnum)
-describe(yield)
+healthy = remove_unhealthydata(df, 7)
+healthy[!, :id] = categorical(healthy.id)
+healthy[!, :lactnum] = categorical(healthy.lactnum)
+healthy[!, :logyield] = log.(healthy.yield .+ 1)
 
 # PLOTS ------------------------------------------------------------------------
 # We will be making an assumption that our error is normally distributed. We
 # need to checkif logyield follows a normal distribution.
 # ------------------------------------------------------------------------------
-scatter(yield.dinmilk, yield.yield)
-histogram(yield.logyield)
+scatter(healthy.dinmilk, healthy.yield)
+histogram(healthy.logyield)
 
 # SPLIT DATA BY DATE -----------------------------------------------------------
 #
@@ -45,9 +40,9 @@ histogram(yield.logyield)
 # Train split: All data up until 2 weeks prior.
 # Test split: All data starting from 2 weeks prior
 # ------------------------------------------------------------------------------
-split_date = maximum(yield.date) - Day(14)
-train_bydate = @subset(yield, :date .< split_date)
-test_bydate = @subset(yield, :date .>= split_date)
+split_date = maximum(healthy.date) - Day(14)
+train_bydate = @subset(healthy, :date .< split_date)
+test_bydate = @subset(healthy, :date .>= split_date)
 
 # RANDOM SPLIT OF DATA ---------------------------------------------------------
 #
@@ -55,14 +50,14 @@ test_bydate = @subset(yield, :date .>= split_date)
 # Train split: Randomly chosen 80% of data
 # Test split: Remaining 20% of data not in train split
 # ------------------------------------------------------------------------------
-sample_size = nrow(yield)
+sample_size = nrow(healthy)
 rand_order = randperm(sample_size)
 train_rng = rand_order[begin:(floor(Int64, sample_size*0.8))]
-train_byrand = yield[train_rng,:]
+train_byrand = healthy[train_rng,:]
 test_rng = rand_order[(floor(Int64, sample_size*0.8)+1):end]
-test_byrand = yield[test_rng,:]
+test_byrand = healthy[test_rng,:]
 
-# MIXED-EFFECTS MODEL 1 --------------------------------------------------------
+# MIXED-EFFECTS MODEL 2 --------------------------------------------------------
 # Initial model: y(n) = a * n^b * exp(-cn)
 # Rearranged model: log(y(n)) = log(a) + b*log(n) - c*n
 # Variables:
