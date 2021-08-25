@@ -3,7 +3,7 @@ using CSV, DataFrames, DataFramesMeta, Glob, Dates
 cd(@__DIR__)
 include("parsers.jl")
 
-df = CSV.read("../../data/diagnostic/diagnosis.csv", DataFrame)
+df = CSV.read("../../data/diagnostic/diagnosis-2.csv", DataFrame)
 
 colset = [:ID,:LACT,:DIM,:Quarter,:Dateok,:Trt_MAST,:Trt_dec,:TRT,:CULT_res,:CULT_type,:Trt_REMAST]
 select!(df, colset)
@@ -56,4 +56,4 @@ select!(
 
 df₄ = @where(df₃, ismissing.(:mastflag) .== 0)
 
-CSV.write("../../data/diagnostic/diagnosis_clean.csv", df₄)
+CSV.write("../../data/diagnostic/diagnosis-2-clean.csv", df₄)

@@ -45,7 +45,7 @@ function plot_conductivity(D::DataFrame,
   d.dtbegin = d.date + d.tbegin
   d.dtend = d.date + d.tend
   transform!(d, [:condrr,:condrf,:condlr,:condlf] .=> 
-    linear_interpolation .=> 
+    linterp .=> 
     [:condrr,:condrf,:condlr,:condlf]
   )
   if smooth > 1
@@ -106,7 +106,7 @@ function plot_yield(D::DataFrame,
   d.dtbegin = d.date + d.tbegin
   d.dtend = d.date + d.tend
   transform!(d, [:yieldrr,:yieldrf,:yieldlr,:yieldlf] .=> 
-    linear_interpolation .=> 
+    linterp .=> 
     [:yieldrr,:yieldrf,:yieldlr,:yieldlf]
   )
   if smooth > 1
@@ -156,6 +156,66 @@ function plot_yield_render(d::DataFrame, thmdi::Float64)
   )
 end
 
+# Yield per min
+function plot_ypm(D::DataFrame, 
+  id::Int, 
+  thmdi::Float64=1.0, 
+  smooth::Int=1)
+
+d = @where(D, :id .== id)
+d.dtbegin = d.date + d.tbegin
+d.dtend = d.date + d.tend
+transform!(d, [:ypmrr,:ypmrf,:ypmlr,:ypmlf] .=> 
+linterp .=> 
+[:ypmrr,:ypmrf,:ypmlr,:ypmlf]
+)
+if smooth > 1
+d.ypmrr = rolling_average(d.ypmrr, smooth)
+d.ypmrf = rolling_average(d.ypmrf, smooth)
+d.ypmlr = rolling_average(d.ypmlr, smooth)
+d.ypmlf = rolling_average(d.ypmlf, smooth)
+end
+
+d.mdi = Impute.interp(d.mdi) |> Impute.locf()
+if thmdi == 1.0 || sum(d.mdi .> thmdi) == 0
+plot_ypm_render(d)
+else
+plot_ypm_render(d, thmdi)
+end 
+end
+
+function plot_ypm_render(d::DataFrame)
+plot(d, x = :dtbegin, y = :ypmrr, Geom.line, color = [colorant"#003f5c"],
+layer( y = :ypmrf, Geom.line, color = [colorant"#7a5195"] ),
+layer( y = :ypmlr, Geom.line, color = [colorant"#ef5675"] ),
+layer( y = :ypmlf, Geom.line, color = [colorant"#ffa600"] ),
+Guide.manual_color_key("Teat", ["RR","RF","LR","LF"], ["#003f5c","#7a5195","#ef5675","#ffa600"]),
+Guide.xlabel("DateTime"),
+Guide.ylabel("ypm"),
+Guide.title("ypm Trends"),
+Scale.y_continuous(format = :plain),
+Theme(background_color = "white")
+)
+end
+
+function plot_ypm_render(d::DataFrame, thmdi::Float64)
+s, e = find_headtail(d.mdi .> thmdi)
+d₂ = DataFrame(Start = d.dtbegin[s], End = d.dtend[e])
+
+plot(d, x = :dtbegin, y = :ypmrr, Geom.line, color = [colorant"#003f5c"],
+layer( y = :ypmrf, Geom.line, color = [colorant"#7a5195"] ),
+layer( y = :ypmlr, Geom.line, color = [colorant"#ef5675"] ),
+layer( y = :ypmlf, Geom.line, color = [colorant"#ffa600"] ),
+layer(d₂, xmin=:Start, xmax=:End, Geom.vband, color=[colorant"grey"], alpha=[0.4]),
+Guide.manual_color_key("Teat", ["RR","RF","LR","LF"], ["#003f5c","#7a5195","#ef5675","#ffa600"]),
+Guide.xlabel("DateTime"),
+Guide.ylabel("ypm"),
+Guide.title("ypm Trends"),
+Scale.y_continuous(format = :plain),
+Theme(background_color = "white")
+)
+end
+
 ### Prior Warning ###
 function yield_priorwarn(D::DataFrame, mdi::Float64, n::Int)
   @assert n >= 1
@@ -181,7 +241,7 @@ function plot_yieldpriorwarn(D::DataFrame, mdi::Float64, n::Int)
   N = Vector{Int}(undef,0)
   teat = repeat(["rr", "rf", "lr", "lf"], n)
 
-  D.mdi = linear_interpolation(D.mdi)
+  D.mdi = linterp(D.mdi)
   h, t = find_headtail(D.mdi .> mdi)
   h₁ = h[1]
 

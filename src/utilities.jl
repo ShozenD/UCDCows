@@ -33,7 +33,7 @@ function zero_to_missing(x)
   end
 end
 
-function linear_interpolation(x::AbstractVector)
+function linterp(x::AbstractVector)
   y = zero_to_missing.(x)
   y = Impute.interp(y) |> Impute.locf()
   return convert(Vector{Float64}, y)

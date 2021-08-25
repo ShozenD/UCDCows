@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.14.4
+# v0.15.1
 
 using Markdown
 using InteractiveUtils
@@ -26,7 +26,6 @@ using
 	DataFramesMeta,
 	Statistics,
 	Impute,
-	HypothesisTests,
 	GLM, 
 	Gadfly,
 	PlutoUI
@@ -392,7 +391,7 @@ end
 # ╟─85e0d4f3-0c34-49a8-b8de-c461255adda0
 # ╠═a578fd8d-9107-4990-90d9-3d3072461ed8
 # ╟─5fc3552f-b61d-4840-a3ba-83c46e16088e
-# ╟─8c285f45-3c39-4cf5-8d36-fd7c6731f133
+# ╠═8c285f45-3c39-4cf5-8d36-fd7c6731f133
 # ╟─691dda5d-1060-4830-a4f4-7372711db25e
 # ╟─6a16eb40-cb58-4718-801c-7aa564068485
 # ╟─e9af2979-b21a-4dca-b5f2-6f6bc7f10c73
@@ -417,6 +416,6 @@ end
 # ╟─04c1e8cf-7bba-432d-89f9-19ed47cc55dc
 # ╟─134f03c4-1f6f-4556-b189-95092a5316b3
 # ╟─df6d9808-436b-43bb-b11f-02074f2352a4
-# ╟─d48412e7-d3c2-42fa-acb8-8f8842a92251
-# ╟─7d22512b-a16d-48a6-bd6c-eb11dabb8ba5
+# ╠═d48412e7-d3c2-42fa-acb8-8f8842a92251
+# ╠═7d22512b-a16d-48a6-bd6c-eb11dabb8ba5
 # ╟─04a799ea-aea7-4bf6-9c53-481af67e483a
