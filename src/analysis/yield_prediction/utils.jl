@@ -83,9 +83,6 @@ function filter_cows(df::DataFrame, N::Integer = 30)
         # Compute number of days with no records in the first N days (number of days out
         # with mastitis in the first N days)
         sick_days = N - length(dinmilk)
-        if sick_days > 20
-            println(unique(group.date))
-        end
         # --- Add cow data into filtered data ---
         cow_data = vcat(cow_data, group)
         # --- Add summary of current cow ---
