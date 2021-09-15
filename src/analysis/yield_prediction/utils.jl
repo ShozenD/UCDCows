@@ -77,18 +77,11 @@ function filter_cows(df::DataFrame, N::Integer = 30)
         if dinmilk_1 < minimum(df.date) || dinmilk_N > maximum(df.date)
             continue
         end
-        # --- Check number of days missed in first N days ---
-        # Collect all days in milk within the first N days
-        dinmilk = unique(group.date) |> x -> x[x .<= dinmilk_N]
-        # Compute number of days with no records in the first N days (number of days out
-        # with mastitis in the first N days)
         sick_days = N - length(dinmilk)
         # --- Add cow data into filtered data ---
         cow_data = vcat(cow_data, group)
         # --- Add summary of current cow ---
         temp = DataFrame(id = [id], 
-                         healthy = [sick_days == 0 ? true : false],
-                         sick_days = [sick_days],
                          first_day_in_milk = [dinmilk_1],
                          lactation_number = unique(group.lactnum))
         summary = vcat(summary, temp)
