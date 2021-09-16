@@ -7,7 +7,8 @@ using DataFrames,
       CategoricalArrays,
       Dates,
       Statistics,
-      Plots
+      Plots,
+      GLM
 
 # ========== Functions ==========
 # ----- Filter data frame -----
@@ -132,6 +133,74 @@ function splitbyhealth(data::DataFrame, args...; kwargs...)
     return df_healthy, df_sick
 end
 
+# Print model statistics
+function print_modelstatistics(model::StatsModels.TableRegressionModel,
+                               train_data::DataFrame,
+                               test_data::DataFrame)
+    # model statistics
+    println("Model Statistics:")
+    display(model)
+
+    # train data
+    degree_of_freedom = dof(model)
+    n_observation = nobs(model)
+    r² = r2(model)
+    pred = predict(model, train_data)
+    error = train_data.logyield - pred
+    train_sse = sum(error .^ 2)
+    train_mse = train_sse / dof_residual(model)
+    println("\nTrain data:")
+    println("Degree of freedom: $degree_of_freedom")
+    println("Number of observations: $n_observation")
+    println("R²: $r²")
+    println("Mean squared error: $(round(train_mse, digits=4))")
+
+    # test data
+    n_observation = nrow(test_data)
+    pred = predict(model, test_data)
+    error = test_data.logyield - pred
+    test_sse = sum(error .^ 2)
+    test_mse = test_sse / (n_observation - degree_of_freedom)
+    println("\nTest data statistics:")
+    println("Number of observations: $n_observation")
+    println("Mean Squared Error: $(round(test_mse, digits=4))")
+end
+
+# Scatter plot and curve for healthy vs sick cows
+function plot_healthyvssick(df_healthy::DataFrame,
+    df_sick::DataFrame,
+    model_healthy::StatsModels.TableRegressionModel,
+    model_sick::StatsModels.TableRegressionModel,
+    lactnum::Integer,
+    max_dinmilk::Integer;
+    kwargs...)
+# ----- Get prediction line -----
+# Make predictor dataset
+pred_data = DataFrame("lactnum" => lactnum, "dinmilk" => 1:max_dinmilk)
+# Compute fitted line, then convert predicted logyield to yield
+pred_healthy = predict(model_healthy, pred_data) |> x -> exp.(x) .- 1
+pred_sick = predict(model_sick, pred_data) |> x -> exp.(x) .- 1
+# ----- Build healthy and sick scatter plots -----
+# Create empty plot with titles
+healthy_plot = plot(title="Lactation $lactnum Healthy Cows"; kwargs...)
+sick_plot = plot(title="Lactation $lactnum Sick Cows"; kwargs...)
+# Color scatter plots by MDi level
+for (p, df) in [(healthy_plot, df_healthy), (sick_plot, df_sick)]
+by_mdi_level = groupby(df, :mdi_level)
+for ((level,), group) in pairs(by_mdi_level)
+# Color blue if level=normal, orange if level=high
+mc= level == "normal" ? 1 : 2
+scatter!(p, group.dinmilk, group.yield, mc=mc, ma=0.5, label=level)
+end
+end
+# Add fitted line
+plot!(healthy_plot, 1:max_dinmilk, pred_healthy, label="", lc=:black, lw=3)
+plot!(sick_plot, 1:max_dinmilk, pred_sick, label="", lc=:black, lw=3)
+# ----- Get healthy and sick plot side by side -----
+p = plot(healthy_plot, sick_plot, layout=(1,2))
+return p
+end
+
 # ========== Workflow ==========
 # ----- Import Data -----
 # Move to directory of current file
@@ -147,7 +216,7 @@ df[!, :lactnum] = categorical(df.lactnum)
 # data.
 filtered, summary = filter_cows(df)
 # Split data into healthy and sick
-mdi_threshold = 1.4
+mdi_threshold = 2.5
 df_healthy, df_sick = splitbyhealth(filtered, 30, criterion=:mdi, threshold=mdi_threshold)
 
 # Remove certain cows that have missing teats
@@ -156,11 +225,17 @@ df_healthy = df_healthy[df_healthy.id .∉ Ref([9064, 49236]), :]
 # Sick data: remove 7984 (RF), 42130 (LR), and 48695 (LR)
 df_sick = df_sick[df_sick.id .∉ Ref([7984, 42130, 48695]), :]
 
+# Remove cows with MDi above threshold at any point of milking, ie. only keep fully healthy
+# cows
+cows = @subset(df_healthy, :mdi .≥ mdi_threshold) |> x -> unique(x.id)
+df_healthy = @subset(df_healthy, :id .∉ Ref(cows))
+
 # Aggregate the yield and mdi
 df_healthy = groupby(df_healthy, [:id, :dinmilk]) |>
              grps -> combine(grps,
                              :lactnum,
                              :yield => sum => :yield,
+                             :yield => (x -> logyield=log(sum(x)+1)) => :logyield,
                              :mdi => (x -> mdi=maximum(skipmissing(x), init=-1)) => :mdi,
                              :date) |>
              comb -> unique(comb, [:id, :dinmilk])
@@ -168,26 +243,50 @@ df_sick = groupby(df_sick, [:id, :dinmilk]) |>
           grps -> combine(grps,
                           :lactnum,
                           :yield => sum => :yield,
+                          :yield => (x -> logyield=log(sum(x)+1)) => :logyield,
                           :mdi => (x -> mdi=maximum(skipmissing(x), init=-1)) => :mdi,
                           :date) |>
           comb -> unique(comb, [:id, :dinmilk])
 
-# Add new labels: Max MDi level and MDi level
+# Add new labels: MDi level
 # MDi level
 df_healthy[!, :mdi_level] = map(x -> x≥mdi_threshold ? "high" : "normal", df_healthy.mdi)
 df_sick[!, :mdi_level] = map(x -> x≥mdi_threshold ? "high" : "normal", df_sick.mdi)
-# Max MDi level: Maximum MDi level a particular cow has/will experience based on the data
 
-
+# ----- Preliminary Plotting -----
 # Healthy plot
 p = plot()
 by_mdi_level = groupby(df_healthy, :mdi_level)
 for ((level,), group) in pairs(by_mdi_level)
     scatter!(p, group.dinmilk, group.yield, label=level)
 end
+display(p)
 # Sick plot
 p = plot()
 by_mdi_level = groupby(df_sick, :mdi_level)
 for ((level,), group) in pairs(by_mdi_level)
     scatter!(p, group.dinmilk, group.yield, label=level)
+end
+display(p)
+
+# ----- Modeling -----
+# Equation formula
+fm = @formula(logyield ~ 1 + log(dinmilk) + dinmilk + lactnum)
+# Fit healthy data
+model_healthy = fit(LinearModel, fm, df_healthy)
+model_sick = fit(LinearModel, fm, df_sick)
+# Print model statistics
+print_modelstatistics(model_healthy, df_healthy, df_healthy)
+print_modelstatistics(model_sick, df_sick, df_sick)
+
+# ----- Plotting -----
+plot_list = []
+for lactnum in 1:4
+    subset_healthy = @subset(df_healthy, :lactnum .== lactnum)
+    subset_sick = @subset(df_sick, :lactnum .== lactnum)
+    p = plot_healthyvssick(subset_healthy, subset_sick, model_healthy, model_sick, lactnum,
+                           150, xlim=(0,150), xtick=0:50:150, ylim=(0,300), ytick=0:50:300,
+                           xlabel="Days In Milk", label="Yield")
+    savefig(p, "plot_$lactnum")
+    push!(plot_list, p)
 end
