@@ -168,37 +168,37 @@ end
 
 # Scatter plot and curve for healthy vs sick cows
 function plot_healthyvssick(df_healthy::DataFrame,
-    df_sick::DataFrame,
-    model_healthy::StatsModels.TableRegressionModel,
-    model_sick::StatsModels.TableRegressionModel,
-    lactnum::Integer,
-    max_dinmilk::Integer;
-    kwargs...)
-# ----- Get prediction line -----
-# Make predictor dataset
-pred_data = DataFrame("lactnum" => lactnum, "dinmilk" => 1:max_dinmilk)
-# Compute fitted line, then convert predicted logyield to yield
-pred_healthy = predict(model_healthy, pred_data) |> x -> exp.(x) .- 1
-pred_sick = predict(model_sick, pred_data) |> x -> exp.(x) .- 1
-# ----- Build healthy and sick scatter plots -----
-# Create empty plot with titles
-healthy_plot = plot(title="Lactation $lactnum Healthy Cows"; kwargs...)
-sick_plot = plot(title="Lactation $lactnum Sick Cows"; kwargs...)
-# Color scatter plots by MDi level
-for (p, df) in [(healthy_plot, df_healthy), (sick_plot, df_sick)]
-by_mdi_level = groupby(df, :mdi_level)
-for ((level,), group) in pairs(by_mdi_level)
-# Color blue if level=normal, orange if level=high
-mc= level == "normal" ? 1 : 2
-scatter!(p, group.dinmilk, group.yield, mc=mc, ma=0.5, label=level)
-end
-end
-# Add fitted line
-plot!(healthy_plot, 1:max_dinmilk, pred_healthy, label="", lc=:black, lw=3)
-plot!(sick_plot, 1:max_dinmilk, pred_sick, label="", lc=:black, lw=3)
-# ----- Get healthy and sick plot side by side -----
-p = plot(healthy_plot, sick_plot, layout=(1,2))
-return p
+                            df_sick::DataFrame,
+                            model_healthy::StatsModels.TableRegressionModel,
+                            model_sick::StatsModels.TableRegressionModel,
+                            lactnum::Integer,
+                            max_dinmilk::Integer;
+                            kwargs...)
+    # ----- Get prediction line -----
+    # Make predictor dataset
+    pred_data = DataFrame("lactnum" => lactnum, "dinmilk" => 1:max_dinmilk)
+    # Compute fitted line, then convert predicted logyield to yield
+    pred_healthy = predict(model_healthy, pred_data) |> x -> exp.(x) .- 1
+    pred_sick = predict(model_sick, pred_data) |> x -> exp.(x) .- 1
+    # ----- Build healthy and sick scatter plots -----
+    # Create empty plot with titles
+    healthy_plot = plot(title="Lactation $lactnum Healthy Cows"; kwargs...)
+    sick_plot = plot(title="Lactation $lactnum Sick Cows"; kwargs...)
+    # Color scatter plots by MDi level
+    for (p, df) in [(healthy_plot, df_healthy), (sick_plot, df_sick)]
+    by_mdi_level = groupby(df, :mdi_level)
+    for ((level,), group) in pairs(by_mdi_level)
+    # Color blue if level=normal, orange if level=high
+    mc= level == "normal" ? 1 : 2
+    scatter!(p, group.dinmilk, group.yield, mc=mc, ma=0.5, label=level)
+    end
+    end
+    # Add fitted line
+    plot!(healthy_plot, 1:max_dinmilk, pred_healthy, label="", lc=:black, lw=3)
+    plot!(sick_plot, 1:max_dinmilk, pred_sick, label="", lc=:black, lw=3)
+    # ----- Get healthy and sick plot side by side -----
+    p = plot(healthy_plot, sick_plot, layout=(1,2))
+    return p
 end
 
 # ========== Workflow ==========
@@ -216,7 +216,7 @@ df[!, :lactnum] = categorical(df.lactnum)
 # data.
 filtered, summary = filter_cows(df)
 # Split data into healthy and sick
-mdi_threshold = 2.5
+mdi_threshold = 1.4
 df_healthy, df_sick = splitbyhealth(filtered, 30, criterion=:mdi, threshold=mdi_threshold)
 
 # Remove certain cows that have missing teats
