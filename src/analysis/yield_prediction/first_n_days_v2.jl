@@ -189,7 +189,7 @@ compute_first_dinmilk(dt::Date, dinmilk::Integer) = dt - Day(dinmilk) + Day(1)
 
 # Fill missing dates (gaps representing mastitis occurence) with yield = 0
 """
-    fillmissingdates(data)
+    fillmissingdinmilk(data)
 
 For each cow, fill the gaps (missing records in the middle of milk production) with default
 yield value of 0.
@@ -202,41 +202,40 @@ yield value of 0.
 # Returns
 - `::DataFrame`: Data frame with filled gaps.
 """
-function fillmissingdates(data::DataFrame)
+function fillmissingdinmilk(data::DataFrame)
     results = DataFrame()
     by_cows = groupby(data, :id)
     for ((id,), group) in pairs(by_cows)
-        # Find missing dates and their corresponding days in milk
-        missing_dates = findmissingdates(group.date)
-        dinmilk_1 = compute_first_dinmilk(group)    # First day in milk
-        missing_dinmilk = [compute_dinmilk(dt, dinmilk_1) for dt in missing_dates]
+        # Find missing days in milk
+        missing_dinmilk = findmissingdinmilk(group.dinmilk)
         # Get the lactation number and group of current cow
         lactnum = unique(group.lactnum)[1]
         grp = unique(group.group)[1]
         # Create temporary data frame for missing dates
-        temp = DataFrame(id = id, date = missing_dates, yield = 0, 
-                         dinmilk = missing_dinmilk, lactnum = lactnum,
+        temp = DataFrame(id = id, yield = 0, dinmilk = missing_dinmilk, lactnum = lactnum,
                          group = grp, status = "sick")
         # Join temporary data with data frame of current cow
         temp = outerjoin(group, temp, 
-                         on = [:id, :yield, :date, :dinmilk, :lactnum, :group, :status])
+                         on = [:id, :yield, :dinmilk, :lactnum, :group, :status])
         results = vcat(results, temp)
     end
+    # Make lactnum as categorical variable again
+    results[!, :lactnum] = categorical(results.lactnum)
     return results
 end
 
 # Find the set of missing dates from a list of dates
 """
-    findmissingdates(list)
+    findmissingdinmilk(list)
 
-Finds the list of missing dates from a list of dates.
+Finds the list of missing days in milk from a list of days in milk.
 
 # Arguments
-- `list::AbstractVector{<:Dates}`: List of dates.
+- `list::AbstractVector{<:Integer}`: List of days in milk.
 """
-function findmissingdates(list::AbstractVector{T}) where T<:Date
+function findmissingdinmilk(list::AbstractVector{T}) where T<:Integer
     result = Vector{T}()
-    rng = minimum(list):Day(1):maximum(list)
+    rng = minimum(list):maximum(list)
     for dt in rng
         dt ∉ list ? push!(result, dt) : nothing
     end
@@ -300,7 +299,7 @@ end
 """
     iscompleteperiod(data)
 
-Check if all dates in the specified range is available.
+Check if all days in milk are available without any gaps in between.
 
 # Arguments
 - `data::AbstractDataFrame`: Data frame containing cow data.
@@ -309,17 +308,23 @@ Check if all dates in the specified range is available.
 - `::Bool`:  Whether all dates in the specified range is available.
 """
 function iscompleteperiod(data::AbstractDataFrame)
-    # Collect all available dates in data frame
-    dates = unique(data.date)
-    # Compute the length of date range
-    ndays = maximum(dates) - minimum(dates) + Day(1)
+    # Collect all available days in milk in data frame
+    days = unique(data.dinmilk)
+    # Compute the expected length of days in milk if there are no gaps
+    ndays = maximum(days) - minimum(days) + 1
     # Check if length of date range is equal to dates list
-    return ndays.value == length(dates)
+    return ndays == length(days)
 end
 
 # Aggregate data frame
 """
     aggregate_data(data)
+
+1. Group data frame by ID and day in milk
+2. Aggregate data frame:
+  - Yield => Sum of yield by day
+  - LogYield => Log of sum of yield by day
+  - MDi => Maximum MDi value each day
 
 # Arguments
 - `data::DataFrame`: Data frame to aggregate.
@@ -403,25 +408,24 @@ function categorize_data(data::DataFrame;
     # Find the unhealthy (sick or a few days before/after sick) days for each cow
     by_cows = groupby(data, :id)
     for ((id,), group) in pairs(by_cows)
-        rng = minimum(group.date):Day(1):maximum(group.date)
-        sick_days, unhealthy_days = Date[], Date[]
+        rng = minimum(group.dinmilk):maximum(group.dinmilk)
+        sick_days, unhealthy_days = Int[], Int[]
         # Look for cow's sick days (occurence of event)
-        for dt in rng
-            if issickday(dt, group, criterion=criterion, mdi_threshold=mdi_threshold)
-                push!(sick_days, dt)
+        for dinmilk in rng
+            if issickday(dinmilk, group, criterion=criterion, mdi_threshold=mdi_threshold)
+                push!(sick_days, dinmilk)
             end
         end
         # Look for cow's unhealthy days (before or after occurence of event)
-        for dt in rng
-            if isunhealthyday(dt, sick_days, before=before, after=after)
-                push!(unhealthy_days, dt)
+        for dinmilk in rng
+            if isunhealthyday(dinmilk, sick_days, before=before, after=after)
+                push!(unhealthy_days, dinmilk)
             end
         end
-        println(unhealthy_days)
         # Change the health status based on ID and unhealthy days
-        cond = (data_copy.id .== id) .& (data_copy.date ∈ Ref(sick_days))
+        cond = (data_copy.id .== id) .& (data_copy.dinmilk .∈ Ref(sick_days))
         data_copy[cond, :status] .= "sick"
-        cond = (data_copy.id .== id) .& (data_copy.date ∈ Ref(unhealthy_days))
+        cond = (data_copy.id .== id) .& (data_copy.dinmilk .∈ Ref(unhealthy_days))
         data_copy[cond, :status] .= "unhealthy"
     end
     return data_copy
@@ -429,12 +433,12 @@ end
 
 # Check if cow is sick on `dt`
 """
-    issickday(dt, df[; criterion, mdi_threshold])
+    issickday(dy, df[; criterion, mdi_threshold])
 
-Check if `dt` is a sick day for a particular cow.
+Check if `dy` is a sick day for a particular cow.
 
 # Arguments
-- `dt::Date`: Date of interest.
+- `dy::Integer`: Day in milk of interest.
 - `df::AbstractDataFrame`: Data for corresponding cow.
 
 # Keyword Arguments
@@ -445,38 +449,38 @@ Check if `dt` is a sick day for a particular cow.
 # Returns
 `::Bool`: Whether a cow is sick or not.
 """
-function issickday(dt::Date, df::AbstractDataFrame; 
+function issickday(dy::Integer, df::AbstractDataFrame; 
                    criterion::Symbol = :mdi,
                    mdi_threshold::AbstractFloat = 1.4)
     # ----- Check gap (mastitis case) -----
-    # If `dt` is part of a gap, it is a sick day regardless of criterion
-    if dt ∉ df.date
+    # If `dy` is part of a gap, it is a sick day regardless of criterion
+    if dy ∉ df.dinmilk
         return true
     end
 
     # ----- Check MDi -----
-    max_mdi = all(ismissing.(df[df.date .== dt, :mdi])) ? 
-              -1 : maximum(skipmissing(df[df.date .== dt, :mdi]))
+    max_mdi = all(ismissing.(df[df.dinmilk .== dy, :mdi])) ? 
+              -1 : maximum(skipmissing(df[df.dinmilk .== dy, :mdi]))
     # If criterion is :sick, nothing to check
     if criterion == :sick
         return false
-    # If criterion is :mdi, check if maximum MDi of `dt` is higher than threshold
+    # If criterion is :mdi, check if maximum MDi of `dy` is higher than threshold
     elseif max_mdi ≥ mdi_threshold
         return true
-    # Criterion is :mdi, but maximum MDi of `dt` is less than threshold
+    # Criterion is :mdi, but maximum MDi of `dy` is less than threshold
     else
         return false
     end
 end
 
 """
-    isunhealthyday(dt, dts[; before, after])
+    isunhealthyday(dy, dys[; before, after])
 
 Checks if cow is fully healthy.
 
 # Arguments
-- `dt::T where T<:Date`: Date of interest.
-- `dts::Vector{T} where T<:Date`: List of sick dates.
+- `dy::T where T<:Integer`: Day in milk of interest.
+- `dys::Vector{T} where T<:Integer`: List of sick days.
 
 # Keyword Arguments
 - `before::Integer`: (Default: 2) Number of days before a sick event where a cow should
@@ -487,11 +491,11 @@ Checks if cow is fully healthy.
 # Returns
 `::Bool`: Whether cow is unhealthy or not.
 """
-function isunhealthyday(dt::T, dts::Vector{T};
+function isunhealthyday(dy::T, dys::Vector{T};
                         before::Integer = 2, 
-                        after::Integer = 5) where T<:Date
-    for day in dts
-        if (dt ≥ (day - Day(before))) & (dt ≤ (day + Day(after)))
+                        after::Integer = 5) where T<:Integer
+    for day in dys
+        if (dy ≥ (day - before)) & (dy ≤ (day + after)) & (dy ≠ day)
             return true
         end
     end
@@ -594,8 +598,28 @@ cows = @subset(df_healthy, :mdi .≥ mdi_threshold) |> x -> unique(x.id)
 df_healthy = @subset(df_healthy, :id .∉ Ref(cows))
 # Remove "healthy" cows with gaps
 df_healthy = removecowswithgaps(df_healthy)
+# --- Aggregate data ---
+df_healthy = aggregate_data(df_healthy)
+df_sick = aggregate_data(df_sick)
 # --- Categorize data into groups and health status ---
 df = categorize_data(df_healthy, df_sick)
 # Fill up missing dates with yield = 0
-df = fillmissingdates(df)
+df = fillmissingdinmilk(df)
+# Fill missing logyield values with 0
+df[ismissing.(df.logyield), :logyield] .= 0.0
 
+# ----- Preliminary Plots -----
+p1 = plot(xlim=(0,150), ylim=(0,250))
+p2 = plot(xlim=(0,150), ylim=(0,250))
+for (mc, st) in enumerate(["healthy", "unhealthy", "sick"])
+    temp = @subset(df, :group .== "healthy", :status .== st)
+    scatter!(p1, temp.dinmilk, temp.yield, ma=0.3, shape=:circle, mc=mc, label=st)
+    temp = @subset(df, :group .== "sick", :status .== st)
+    scatter!(p2, temp.dinmilk, temp.yield, ma=0.3, shape=:star5, mc=mc, label=st)
+end
+p = plot(p1, p2, layout=(1,2))
+display(p)
+
+# ----- Model Fitting -----
+fm = @formula(logyield ~ 1 + log(dinmilk) + dinmilk + lactnum + group + status)
+model = fit(LinearModel, fm, df)
