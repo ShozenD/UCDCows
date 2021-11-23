@@ -1,3 +1,15 @@
+## =========================================================================================
+# This files processes all the daily/weekly data imported from the Diamond and Jones
+# servers. To run this file, ensure that the `data/` folder contains the following
+# subfolders:
+#   - `raw/diamond h`
+#   - `raw/jones vms`
+#   - `raw/jones v300`
+#   - `cleaned/diamond h`
+#   - `cleaned/jones vms`
+#   - `cleaned/jones v300`
+# ==========================================================================================
+
 using Gadfly: ismissing, isnothing
 using CSV: propertynames, SentinelArrays
 using CSV, DataFrames, DataFramesMeta, Glob, Dates
@@ -20,8 +32,6 @@ using CSV, DataFrames, Glob
 fpaths = glob("*")
 update_cache(fpaths)
 ```
-
-**See also:** `iacwt`
 """
 function update_cache(file_paths::Vector{String})
   if !("cache.csv" in glob("*"))
@@ -38,46 +48,50 @@ function update_cache(file_paths::Vector{String})
 end
 
 #-------------------- Cleaning raw files ---------------------------------------
-fpaths = glob("../../data/raw/*")
-cache = update_cache(fpaths)
+servers = ["diamond h", "jones v300", "jones vms"]
 
-for path in cache.fname
-  # Read data
-  df = CSV.read(path, DataFrame)
-  try
-    if occursin("Grain", path)
-      parse_grain!(df, path)
-
-      fname = replace(path, "Grain Consumed in VMS_" => "grain_")
-      fname = replace(fname, "raw" => "cleaned")
-      fname = replace(fname, " " => "")
-    else
-      parse_all!(df)
-
-      fname = replace(path, "QMPS Daily Milkings Report_" => "milk_")
-      fname = replace(fname, "raw" => "cleaned")
-      fname = replace(fname, " " => "")
+for server in servers
+    fpaths = glob("../../data/raw/$server/*")
+    cache = update_cache(fpaths)
+    for path in cache.fname
+      # Read data
+      df = CSV.read(path, DataFrame)
+      try
+        if occursin("Grain", path)
+          parse_grain!(df, path)
+    
+          fname = replace(path, "Grain Consumed in VMS_" => "grain_")
+          fname = replace(fname, "raw" => "cleaned")
+          fname = replace(fname, r"(.)+[\\|/]" => "")
+        else
+          parse_all!(df)
+    
+          fname = replace(path, "QMPS Daily Milkings Report_" => "milk_")
+          fname = replace(fname, "raw" => "cleaned")
+          fname = replace(fname, r"(.)+[\\|/]" => "")
+        end
+        CSV.write(string("../../data/cleaned/$server/", fname), df)
+      catch
+        println("Failed to parse: ", path)
+      end 
     end
-    CSV.write(string("../../data/cleaned/", fname), df)
-  catch
-    println("Failed to parse: ", path)
-  end 
 end
 
 #-------------------- Combine files and remove duplicates ----------------------
-cleaned_file_paths = glob("../../data/cleaned/*")
-
 grain_df = DataFrame()
 milk_df = DataFrame()
-for path in cleaned_file_paths
-  # Read data 
-  temp = CSV.read(path, DataFrame)
-  # Append data
-  if occursin("grain", path)
-    global grain_df = vcat(grain_df, temp)
-  else
-    global milk_df = vcat(milk_df, temp)
-  end
+for server in servers
+    cleaned_file_paths = glob("../../data/cleaned/$server/*")
+    for path in cleaned_file_paths
+      # Read data 
+      temp = CSV.read(path, DataFrame)
+      # Append data
+      if occursin("grain", path)
+        global grain_df = vcat(grain_df, temp)
+      else
+        global milk_df = vcat(milk_df, temp)
+      end
+    end
 end
 sort!(milk_df, [:id, :date, :tbegin])
 unique!(milk_df, [:id, :date, :tbegin])

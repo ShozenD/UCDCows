@@ -1,398 +1,160 @@
 fname
-..\..\data\raw\Grain Consumed in VMS_20210504 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210504 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210504 010004.csv
-..\..\data\raw\Grain Consumed in VMS_20210505 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210505 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210506 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210507 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210507 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210508 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210508 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210509 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210510 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210510 010003.csv
-..\..\data\raw\Grain Consumed in VMS_20210511 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210511 010003.csv
-..\..\data\raw\Grain Consumed in VMS_20210512 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210513 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210514 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210514 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210515 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210516 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210517 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210517 010003.csv
-..\..\data\raw\Grain Consumed in VMS_20210518 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210518 010003.csv
-..\..\data\raw\Grain Consumed in VMS_20210519 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210519 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210520 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210521 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210521 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210522 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210523 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210523 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210524 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210524 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210524 010004.csv
-..\..\data\raw\Grain Consumed in VMS_20210525 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210525 010003.csv
-..\..\data\raw\Grain Consumed in VMS_20210526 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210527 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210527 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210528 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210529 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210530 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210531 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210531 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210531 010003.csv
-..\..\data\raw\Grain Consumed in VMS_20210601 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210601 010003.csv
-..\..\data\raw\Grain Consumed in VMS_20210602 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210602 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210603 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210603 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210604 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210604 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210605 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210605 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210606 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210607 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210607 010003.csv
-..\..\data\raw\Grain Consumed in VMS_20210608 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210608 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210608 010003.csv
-..\..\data\raw\Grain Consumed in VMS_20210609 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210609 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210610 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210610 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210611 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210612 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210612 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210613 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210613 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210614 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210614 010004.csv
-..\..\data\raw\Grain Consumed in VMS_20210615 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210615 010002.csv
-..\..\data\raw\Grain Consumed in VMS_20210616 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210617 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210618 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210619 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210619 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210619 013101.csv
-..\..\data\raw\Grain Consumed in VMS_20210620 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210621 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210621 010002.csv
-..\..\data\raw\Grain Consumed in VMS_20210622 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210622 010003.csv
-..\..\data\raw\Grain Consumed in VMS_20210623 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210623 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210624 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210624 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210625 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210625 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210626 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210626 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210627 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210628 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210628 010003.csv
-..\..\data\raw\Grain Consumed in VMS_20210629 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210629 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210629 010003.csv
-..\..\data\raw\Grain Consumed in VMS_20210630 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210630 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210701 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210701 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210702 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210702 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210703 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210704 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210704 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210705 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210705 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210705 010002.csv
-..\..\data\raw\Grain Consumed in VMS_20210706 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210706 010002.csv
-..\..\data\raw\Grain Consumed in VMS_20210707 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210708 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210708 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210709 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210710 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210710 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210711 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210711 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210712 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210712 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210712 010002.csv
-..\..\data\raw\Grain Consumed in VMS_20210713 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210713 010002.csv
-..\..\data\raw\Grain Consumed in VMS_20210714 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210714 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210715 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210716 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210716 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210717 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210718 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210718 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210719 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210719 010002.csv
-..\..\data\raw\Grain Consumed in VMS_20210720 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210720 010003.csv
-..\..\data\raw\Grain Consumed in VMS_20210721 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210721 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210722 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210723 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210723 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210724 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210724 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210725 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210725 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210726 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210726 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210726 010002.csv
-..\..\data\raw\Grain Consumed in VMS_20210727 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210727 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210727 010002.csv
-..\..\data\raw\Grain Consumed in VMS_20210728 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210729 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210729 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210730 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210730 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210731 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210731 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210801 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210802 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210802 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210802 010002.csv
-..\..\data\raw\Grain Consumed in VMS_20210803 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210803 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210803 010002.csv
-..\..\data\raw\Grain Consumed in VMS_20210804 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210805 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210806 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210806 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210807 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210808 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210808 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210809 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210809 010002.csv
-..\..\data\raw\Grain Consumed in VMS_20210810 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210810 010002.csv
-..\..\data\raw\Grain Consumed in VMS_20210811 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210811 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210812 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210812 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210813 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210813 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210814 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210815 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210816 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210816 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210817 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210817 010002.csv
-..\..\data\raw\Grain Consumed in VMS_20210818 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210819 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210819 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210820 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210821 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210822 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210822 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210823 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210823 010003.csv
-..\..\data\raw\Grain Consumed in VMS_20210824 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210824 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210824 010002.csv
-..\..\data\raw\Grain Consumed in VMS_20210825 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210826 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210827 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210827 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210828 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210829 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210830 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210830 010002.csv
-..\..\data\raw\Grain Consumed in VMS_20210831 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210831 010003.csv
-..\..\data\raw\Grain Consumed in VMS_20210901 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210902 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210902 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210903 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210904 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210905 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210905 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210906 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210906 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210907 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210907 010002.csv
-..\..\data\raw\Grain Consumed in VMS_20210908 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210909 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210909 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210910 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210911 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210911 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210912 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210912 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210913 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210913 010002.csv
-..\..\data\raw\Grain Consumed in VMS_20210914 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210914 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210915 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210916 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210917 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210917 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210918 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210919 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210919 010001.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210504 010003.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210504 010007.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210504 010014.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210510 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210510 010005.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210510 010015.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210511 010003.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210511 010005.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210511 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210517 010003.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210517 010008.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210517 010015.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210518 010003.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210518 010009.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210518 010015.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210524 010003.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210524 010009.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210524 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210525 010003.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210525 010010.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210525 010017.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210531 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210531 010011.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210531 010017.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210601 010003.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210601 010011.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210601 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210607 010003.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210607 010011.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210607 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210608 010003.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210608 010012.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210608 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210614 010003.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210614 010012.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210614 010017.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210615 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210615 010012.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210615 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210621 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210621 010012.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210621 010017.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210622 010003.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210622 010012.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210622 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210628 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210628 010013.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210628 010017.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210629 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210629 010013.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210629 010017.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210705 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210705 010013.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210705 010017.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210706 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210706 010013.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210706 010018.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210712 010001.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210712 010013.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210712 010018.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210713 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210713 010013.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210713 010018.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210719 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210719 010013.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210719 010018.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210720 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210720 010013.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210720 010017.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210726 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210726 010013.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210726 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210727 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210727 010013.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210727 010017.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210802 010001.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210802 010013.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210802 010017.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210803 010001.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210803 010014.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210803 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210809 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210809 010014.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210809 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210810 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210810 010014.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210810 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210816 010001.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210816 010014.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210816 010018.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210817 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210817 010014.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210817 010018.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210823 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210823 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210824 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210824 010017.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210830 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210830 010017.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210831 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210906 010001.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210906 010015.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210906 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210907 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210907 010015.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210913 010002.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210913 010015.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210914 010001.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210914 010015.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210914 010016.csv
-..\..\data\raw\Grain Consumed in VMS_20210920 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210921 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210921 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210922 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210922 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210923 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210924 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210925 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210926 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210927 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210928 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210928 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210929 010000.csv
-..\..\data\raw\Grain Consumed in VMS_20210929 010001.csv
-..\..\data\raw\Grain Consumed in VMS_20210930 010000.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210920 010015.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210920 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210921 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210921 010017.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210927 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210927 010017.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210928 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210928 010017.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210927 010001.csv
-..\..\data\raw\QMPS Daily Milkings Report_20210928 010001.csv
-..\..\data\raw\QMPS Daily Milkings Report_20211004 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20211004 010017.csv
-..\..\data\raw\QMPS Daily Milkings Report_20211005 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20211005 010018.csv
-..\..\data\raw\QMPS Daily Milkings Report_20211011 010014.csv
-..\..\data\raw\QMPS Daily Milkings Report_20211011 010018.csv
-..\..\data\raw\QMPS Daily Milkings Report_20211012 010015.csv
-..\..\data\raw\QMPS Daily Milkings Report_20211012 010018.csv
-..\..\data\raw\QMPS Daily Milkings Report_20211018 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20211018 010018.csv
-..\..\data\raw\QMPS Daily Milkings Report_20211019 010017.csv
-..\..\data\raw\QMPS Daily Milkings Report_20211019 010018.csv
-..\..\data\raw\QMPS Daily Milkings Report_20211025 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20211025 010017.csv
-..\..\data\raw\QMPS Daily Milkings Report_20211026 010016.csv
-..\..\data\raw\QMPS Daily Milkings Report_20211026 010017.csv
-..\..\data\raw\QMPS Daily Milkings Report_20211101 010017.csv
-..\..\data\raw\QMPS Daily Milkings Report_20211102 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210504 010014.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210510 010015.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210511 010016.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210517 010015.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210518 010015.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210524 010016.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210525 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210531 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210601 010016.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210607 010016.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210608 010016.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210614 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210615 010016.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210621 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210622 010016.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210628 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210629 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210705 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210706 010018.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210712 010018.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210713 010018.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210719 010018.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210720 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210726 010016.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210727 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210802 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210803 010016.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210809 010016.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210810 010016.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210816 010018.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210817 010018.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210823 010016.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210824 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210830 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210831 010016.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210906 010016.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210907 010015.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210913 010015.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210914 010016.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210920 010016.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210921 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210927 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20210928 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20211004 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20211005 010018.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20211011 010018.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20211012 010018.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20211018 010018.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20211019 010018.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20211025 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20211026 010016.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20211101 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20211102 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20211108 010018.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20211109 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20211115 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20211116 010017.csv
+..\..\data\raw\diamond h\QMPS Daily Milkings Report_20211122 010017.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210504 010007.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210510 010005.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210511 010005.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210517 010008.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210518 010009.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210524 010009.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210525 010010.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210531 010011.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210601 010011.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210607 010011.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210608 010012.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210614 010012.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210615 010012.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210621 010012.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210622 010012.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210628 010013.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210629 010013.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210705 010013.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210706 010013.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210712 010013.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210713 010013.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210719 010013.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210720 010013.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210726 010013.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210727 010013.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210802 010013.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210803 010014.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210809 010014.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210810 010014.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210816 010014.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210817 010014.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210823 010015.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210824 010014.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210830 010015.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210831 010015.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210906 010015.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210907 010015.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210913 010015.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210914 010015.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210920 010015.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210921 010016.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210927 010016.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20210928 010016.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20211004 010016.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20211005 010016.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20211011 010014.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20211012 010015.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20211018 010016.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20211019 010017.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20211025 010016.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20211026 010017.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20211101 010017.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20211102 010017.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20211108 010017.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20211109 010016.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20211115 010017.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20211116 010017.csv
+..\..\data\raw\jones v300\QMPS Daily Milkings Report_20211122 010017.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210504 010003.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210510 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210511 010003.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210517 010003.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210518 010003.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210524 010003.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210525 010003.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210531 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210601 010003.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210607 010003.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210608 010003.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210614 010003.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210615 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210621 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210622 010003.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210628 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210629 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210705 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210706 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210712 010001.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210713 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210719 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210720 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210726 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210727 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210802 010001.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210803 010001.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210809 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210810 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210816 010001.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210817 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210823 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210824 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210830 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210831 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210906 010001.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210907 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210913 010002.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210914 010001.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210920 010001.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210921 010001.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210927 010001.csv
+..\..\data\raw\jones vms\QMPS Daily Milkings Report_20210928 010001.csv
