@@ -16,7 +16,8 @@ using DataFrames,
       LaTeXStrings,
       Random,
       StatsBase,
-      AverageShiftedHistograms
+      AverageShiftedHistograms,
+      Distributions
 
 # ========== Functions ==========
 # ----- Filter data frame -----
@@ -722,8 +723,8 @@ p5 = plot(p1, p4, layout=(1,2))
 savefig(p5, "gridsearch.png")
 
 ## ----- Search for `k` days for best model fit -----
-dinmilk_range = 0:8
-n_trials = 5000
+dinmilk_range = 0:10
+n_trials = 7000
 random_states = sample(1:10000, n_trials, replace=false)
 n_days₁ = Vector{Int64}(undef, n_trials); n_days₂ = Vector{Int64}(undef, n_trials)
 mses₁ = Vector{Float64}(undef, n_trials); mses₂ = Vector{Float64}(undef, n_trials)
@@ -745,22 +746,24 @@ end
 
 d₁ = unique(n_days₁) |> sort!; c₁ = [count(==(i), n_days₁) for i in d₁]
 d₂ = unique(n_days₂) |> sort!; c₂ = [count(==(i), n_days₂) for i in d₂]
-p1 = plot(title="β₄ for MDi threshold=$mdi_threshold₁", titlefontsize=10) 
-p2 = plot(title="β₄ for MDi threshold=$mdi_threshold₂", titlefontsize=10)
-p3 = plot(title="β₅ for MDi threshold=$mdi_threshold₁", titlefontsize=10) 
-p4 = plot(title="β₅ for MDi threshold=$mdi_threshold₂", titlefontsize=10)
-p5 = plot(title="MSE for MDi threshold=$mdi_threshold₁", titlefontsize=10) 
-p6 = plot(title="MSE for MDi threshold=$mdi_threshold₂", titlefontsize=10)
+p1 = plot(title="β₄ for MDi threshold=$mdi_threshold₁", titlefontsize=10, legend=:outerright) 
+p2 = plot(title="β₄ for MDi threshold=$mdi_threshold₂", titlefontsize=10, legend=:outerright)
+p3 = plot(title="β₅ for MDi threshold=$mdi_threshold₁", titlefontsize=10, legend=:outerright) 
+p4 = plot(title="β₅ for MDi threshold=$mdi_threshold₂", titlefontsize=10, legend=:outerright)
+p5 = plot(title="MSE for MDi threshold=$mdi_threshold₁", titlefontsize=10, legend=:outerright) 
+p6 = plot(title="MSE for MDi threshold=$mdi_threshold₂", titlefontsize=10, legend=:outerright)
 for i in unique([d₁; d₂])
+    lw = i < 2 ? 2 : 1
+    la = i < 2 ? 1 : 0.5
     if i in d₁ && count(==(i), n_days₁) > 1
-        plot!(p1, ash(coefs₁["status (unhealthy)"][n_days₁ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6)
-        plot!(p3, ash(coefs₁["group (sick)"][n_days₁ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6)
-        plot!(p5, ash(mses₁[n_days₁ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6)
+        plot!(p1, ash(coefs₁["status (unhealthy)"][n_days₁ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6, lw=lw, la=la)
+        plot!(p3, ash(coefs₁["group (sick)"][n_days₁ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6, lw=lw, la=la)
+        plot!(p5, ash(mses₁[n_days₁ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6, lw=lw, la=la)
     end
     if i in d₂ && count(==(i), n_days₂) > 1
-        plot!(p2, ash(coefs₂["status (unhealthy)"][n_days₂ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6)
-        plot!(p4, ash(coefs₂["group (sick)"][n_days₂ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6)
-        plot!(p6, ash(mses₂[n_days₂ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6)
+        plot!(p2, ash(coefs₂["status (unhealthy)"][n_days₂ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6, lw=lw, la=la)
+        plot!(p4, ash(coefs₂["group (sick)"][n_days₂ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6, lw=lw, la=la)
+        plot!(p6, ash(mses₂[n_days₂ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6, lw=lw, la=la)
     end
 end
 p7 = bar(d₁, c₁, orientation=:h, legend=false, title="Best k", yticks=d₁)
@@ -770,10 +773,46 @@ py = plot(p2, p4, p6, p8, layout=@layout [[a;b;c] d])
 savefig(px, "mdi1_estimate.png")
 savefig(py, "mdi2_estimate.png")
 
+## ----- Find confidence intervals for β₄ and β₅ -----
+struct ConfidenceIntervals{T<:AbstractFloat}
+    μ::T
+    σ::T
+    percent90::NamedTuple{(:lower, :upper), Tuple{T,T}}
+    percent95::NamedTuple{(:lower, :upper), Tuple{T,T}}
+    percent99::NamedTuple{(:lower, :upper), Tuple{T,T}}
+end
+
+function ConfidenceIntervals(μ::T, σ::T, dist::Type{S} = Normal) where 
+                            {T<:AbstractFloat, S<:Distribution}
+    D = dist(μ, σ)
+    μₜ = mean(D)            # Transformed mean
+    σₜ = std(D)             # Transformed standard deviation
+    percent90 = (lower = quantile(D, 0.05), upper = quantile(D, 0.95))
+    percent95 = (lower = quantile(D, 0.025), upper = quantile(D, 0.975))
+    percent99 = (lower = quantile(D, 0.005), upper = quantile(D, 0.995))
+    return ConfidenceIntervals(μₜ, σₜ, percent90, percent95, percent99)
+end
+
+μ₄₁ = mean(coefs₁["status (unhealthy)"][n_days₁ .== 1]); μ₅₁ = mean(coefs₁["group (sick)"][n_days₁ .== 1])
+σ₄₁ = std(coefs₁["status (unhealthy)"][n_days₁ .== 1]); σ₅₁ = std(coefs₁["group (sick)"][n_days₁ .== 1])
+μ₄₂ = mean(coefs₂["status (unhealthy)"][n_days₂ .== 1]); μ₅₂ = mean(coefs₂["group (sick)"][n_days₂ .== 1])
+σ₄₂ = std(coefs₂["status (unhealthy)"][n_days₂ .== 1]); σ₅₂ = std(coefs₂["group (sick)"][n_days₂ .== 1])
+CI₄₁ = ConfidenceIntervals(μ₄₁, σ₄₁); CI₅₁ = ConfidenceIntervals(μ₅₁, σ₅₁)
+CI₄₂ = ConfidenceIntervals(μ₄₂, σ₄₂); CI₅₂ = ConfidenceIntervals(μ₅₂, σ₅₂)
+# === How β₄ and β₅ predicts difference in milk yield between healthy vs sick cows ===
+# --- β₄ and β₅ when MDi threshold = 1.4 ---
+CI1₁ = ConfidenceIntervals(μ₅₁, σ₅₁, LogNormal)                     # healthy cows in sick vs healthy group   [99%: (0.964, 0.969)]
+CI2₁ = ConfidenceIntervals(μ₄₁, σ₄₁, LogNormal)                     # healthy vs unhealthy in sick group      [99%: (0.880, 0.887)]
+CI3₁ = ConfidenceIntervals(μ₄₁ + μ₅₁, √(σ₄₁^2 + σ₅₁^2), LogNormal)  # healthy in healthy vs unhealthy in sick [99%: (0.850, 0.858)]
+# --- β₄ and β₅ when MDi threshold = 1.8 ---
+CI1₂ = ConfidenceIntervals(μ₅₂, σ₅₂, LogNormal)                     # healthy cows in sick vs healthy group   [99%: (0.971, 0.977)]
+CI2₂ = ConfidenceIntervals(μ₄₂, σ₄₂, LogNormal)                     # healthy vs unhealthy in sick group      [99%: (0.877, 0.888)]
+CI3₂ = ConfidenceIntervals(μ₄₂ + μ₅₂, √(σ₄₂^2 + σ₅₂^2), LogNormal)  # healthy in healthy vs unhealthy in sick [99%: (0.853, 0.866)]
+
 ## ----- Model fit without accounting cow status -----
 fm = @formula(logyield ~ 1 + log(dinmilk) + dinmilk + lactnum + status + group + normalized_GPTAM)
-mse_train₁, mse_test₁, coefs₁, model₁ = categorize_and_fit(df_healthy₁, df_sick₁, genomic_info, 5, :mdi, mdi_threshold₁, fm=fm, split_by=:random, train_size=9, test_size=1, random_state=1234)
-mse_train₂, mse_test₂, coefs₂, model₂ = categorize_and_fit(df_healthy₁, df_sick₂, genomic_info, 5, :mdi, mdi_threshold₂, fm=fm, split_by=:random, train_size=9, test_size=1, random_state=1234)
+mse_train₁, mse_test₁, coefs₁, model₁ = categorize_and_fit(df_healthy₁, df_sick₁, genomic_info, 1, :mdi, mdi_threshold₁, fm=fm, split_by=:random, train_size=9, test_size=1, random_state=1234)
+mse_train₂, mse_test₂, coefs₂, model₂ = categorize_and_fit(df_healthy₁, df_sick₂, genomic_info, 1, :mdi, mdi_threshold₂, fm=fm, split_by=:random, train_size=9, test_size=1, random_state=1234)
 # Model predictions for average cows
 dfₕ = DataFrame(dinmilk = repeat(1:200,3), lactnum = repeat([1,2,3],inner=200), group="healthy", status="healthy", normalized_GPTAM=0)
 dfₛ = DataFrame(dinmilk = repeat(1:200,3), lactnum = repeat([1,2,3],inner=200), group="sick", status="unhealthy", normalized_GPTAM=0)
