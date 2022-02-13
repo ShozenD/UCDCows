@@ -85,6 +85,7 @@ for server in servers
     for path in cleaned_file_paths
       # Read data 
       temp = CSV.read(path, DataFrame)
+      temp[!,:farm] .= server
       # Append data
       if occursin("grain", path)
         global grain_df = vcat(grain_df, temp)
