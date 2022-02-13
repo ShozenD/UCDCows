@@ -658,7 +658,7 @@ path = "../../../data/analytical/cows-analytic.csv"
 df = CSV.read(path, DataFrame)
 df[!, :id] = categorical(df.id)
 df[!, :lactnum] = categorical(df.lactnum)
-# Read genomic info data file
+# Read genomic info data file (55 out of 695 cows have GPTAM values after data cleaning)
 path = "../../../data/misc/genomic_info.csv"
 genomic_info = CSV.read(path, DataFrame) |> x -> x[!, [:id, :GPTAM]]
 mean_GPTAM = mean(genomic_info.GPTAM)
@@ -698,33 +698,33 @@ dinmilk_range = 0:100
 best₁, list₁ = gridsearch(df_healthy₁, df_sick₁, genomic_info, dinmilk_range, :mdi, mdi_threshold₁,
                           split_by=:random, train_size=0.9, test_size=0.1, random_state=1234)
 p1 = plot(dinmilk_range, list₁.mse["train"], xlabel = "k days after event", ylabel = "MSE", 
-          label = "(train) MDi=1.4", lc = 1, ls = :dash, title = "Model MSEs by n days", 
+          label = "(train) vs mid-high MDi cows", lc = 1, ls = :dash, title = "Model MSEs by n days", 
           titlefontsize = 10, xguidefontsize = 8, yguidefontsize = 8,
           legend=:topright)
-plot!(p1, dinmilk_range, list₁.mse["test"], label = "(test) MDi=1.4", lc = 1, ls = :solid)
-p2 = plot(dinmilk_range, abs.(list₁.coef["status (unhealthy)"]), label = "β₄ when MDi=1.4",
+plot!(p1, dinmilk_range, list₁.mse["test"], label = "(test) vs mid-high MDi cows", lc = 1, ls = :solid)
+p2 = plot(dinmilk_range, abs.(list₁.coef["status (unhealthy)"]), label = "β₄ when vs mid-high MDi cows",
           xlabel = "k days after event", ylabel = "|coef.|", 
           title = "Coef. magnitude for status=unhealthy (β₄)", 
           titlefontsize = 7, xguidefontsize = 8, yguidefontsize = 8, legend=:topright)
-p3 = plot(dinmilk_range, abs.(list₁.coef["group (sick)"]), label = "β₅ when MDi=1.4",
+p3 = plot(dinmilk_range, abs.(list₁.coef["group (sick)"]), label = "β₅ when vs mid-high MDi cows",
           xlabel = "k days after event", ylabel = "|coef.|",
           title = "Coef. magnitude for group=sick (β₅)",
           titlefontsize = 7, xguidefontsize = 8, yguidefontsize = 8, legend=:topleft)
 # Grid search for mdi_threshold = 1.8
 best₂, list₂ = gridsearch(df_healthy₁, df_sick₂, genomic_info, dinmilk_range, :mdi, mdi_threshold₂,
                           split_by=:random, train_size=0.9, test_size=0.1, random_state=1234)
-plot!(p1, dinmilk_range, list₂.mse["train"], label = "(train) MDi=1.8", lc = 2, ls = :dash)
-plot!(p1, dinmilk_range, list₂.mse["test"], label = "(test) MDi=1.8", lc = 2, ls = :solid)
-plot!(p2, dinmilk_range, abs.(list₂.coef["status (unhealthy)"]), label = "β₄ when MDi=1.8")
-plot!(p3, dinmilk_range, abs.(list₂.coef["group (sick)"]), label = "β₅ when MDi=1.8")
+plot!(p1, dinmilk_range, list₂.mse["train"], label = "(train) vs high MDi cows", lc = 2, ls = :dash)
+plot!(p1, dinmilk_range, list₂.mse["test"], label = "(test) vs high MDi cows", lc = 2, ls = :solid)
+plot!(p2, dinmilk_range, abs.(list₂.coef["status (unhealthy)"]), label = "β₄ when vs high MDi cows")
+plot!(p3, dinmilk_range, abs.(list₂.coef["group (sick)"]), label = "β₅ when vs high MDi cows")
 # Overall plot
 p4 = plot(p2, p3, layout=(2,1))
 p5 = plot(p1, p4, layout=(1,2))
 savefig(p5, "gridsearch.png")
 
 ## ----- Search for `k` days for best model fit -----
-dinmilk_range = 0:10
-n_trials = 7000
+dinmilk_range = 0:7
+n_trials = 5000
 random_states = sample(1:10000, n_trials, replace=false)
 n_days₁ = Vector{Int64}(undef, n_trials); n_days₂ = Vector{Int64}(undef, n_trials)
 mses₁ = Vector{Float64}(undef, n_trials); mses₂ = Vector{Float64}(undef, n_trials)
@@ -746,12 +746,12 @@ end
 
 d₁ = unique(n_days₁) |> sort!; c₁ = [count(==(i), n_days₁) for i in d₁]
 d₂ = unique(n_days₂) |> sort!; c₂ = [count(==(i), n_days₂) for i in d₂]
-p1 = plot(title="β₄ for MDi threshold=$mdi_threshold₁", titlefontsize=10, legend=:outerright) 
-p2 = plot(title="β₄ for MDi threshold=$mdi_threshold₂", titlefontsize=10, legend=:outerright)
-p3 = plot(title="β₅ for MDi threshold=$mdi_threshold₁", titlefontsize=10, legend=:outerright) 
-p4 = plot(title="β₅ for MDi threshold=$mdi_threshold₂", titlefontsize=10, legend=:outerright)
-p5 = plot(title="MSE for MDi threshold=$mdi_threshold₁", titlefontsize=10, legend=:outerright) 
-p6 = plot(title="MSE for MDi threshold=$mdi_threshold₂", titlefontsize=10, legend=:outerright)
+p1 = plot(title="β₄ when vs mid-high MDi cows", titlefontsize=10, legend=:outerright) 
+p2 = plot(title="β₄ when vs high MDi cows", titlefontsize=10, legend=:outerright)
+p3 = plot(title="β₅ when vs mid-high MDi cows", titlefontsize=10, legend=:outerright) 
+p4 = plot(title="β₅ when vs high MDi cows", titlefontsize=10, legend=:outerright)
+p5 = plot(title="MSE when vs mid-high MDi cows", titlefontsize=10, legend=:outerright) 
+p6 = plot(title="MSE when vs high MDi cows", titlefontsize=10, legend=:outerright)
 for i in unique([d₁; d₂])
     lw = i < 2 ? 2 : 1
     la = i < 2 ? 1 : 0.5
@@ -797,8 +797,10 @@ end
 σ₄₁ = std(coefs₁["status (unhealthy)"][n_days₁ .== 1]); σ₅₁ = std(coefs₁["group (sick)"][n_days₁ .== 1])
 μ₄₂ = mean(coefs₂["status (unhealthy)"][n_days₂ .== 1]); μ₅₂ = mean(coefs₂["group (sick)"][n_days₂ .== 1])
 σ₄₂ = std(coefs₂["status (unhealthy)"][n_days₂ .== 1]); σ₅₂ = std(coefs₂["group (sick)"][n_days₂ .== 1])
-CI₄₁ = ConfidenceIntervals(μ₄₁, σ₄₁); CI₅₁ = ConfidenceIntervals(μ₅₁, σ₅₁)
-CI₄₂ = ConfidenceIntervals(μ₄₂, σ₄₂); CI₅₂ = ConfidenceIntervals(μ₅₂, σ₅₂)
+CI₄₁ = ConfidenceIntervals(μ₄₁, σ₄₁)
+CI₅₁ = ConfidenceIntervals(μ₅₁, σ₅₁)
+CI₄₂ = ConfidenceIntervals(μ₄₂, σ₄₂)
+CI₅₂ = ConfidenceIntervals(μ₅₂, σ₅₂)
 # === How β₄ and β₅ predicts difference in milk yield between healthy vs sick cows ===
 # --- β₄ and β₅ when MDi threshold = 1.4 ---
 CI1₁ = ConfidenceIntervals(μ₅₁, σ₅₁, LogNormal)                     # healthy cows in sick vs healthy group   [99%: (0.964, 0.969)]
