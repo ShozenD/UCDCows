@@ -25,7 +25,8 @@ using DataFrames,
     filter_cows(df, N)
 
 Filter data frame to contain only cows where the first N days of milk yield are recorded,
-ie. filter the cows where the 1st day in milk is on or after 2021/04/27.
+ie. filter the cows where the 1st day in milk is on or after 2021/04/27. Additionally, cows
+with lactation number larger than 3 is removed from the dataset.
 
 # Arguments
 - `df::DataFrame`: Raw data frame.
@@ -56,6 +57,10 @@ function filter_cows(df::DataFrame, N::Integer = 30)
             continue
         # No data for first N days
         elseif all(group.date .> dinmilk_N)
+            continue
+        end
+        # Remove data is lactation number is not 1,2,3
+        if lactnum ∉ [1,2,3]
             continue
         end
         # --- Add cow data into filtered data ---
@@ -349,6 +354,8 @@ function aggregate_data(data::DataFrame)
                               :yield => sum => :yield,
                               :yield => (x -> logyield=log(sum(x)+1)) => :logyield,
                               :condtot => mean => :condtot,
+                              :GPTAM,
+                              :normalized_GPTAM,
                               :mdi => (x -> mdi=maximum(skipmissing(x), init=-1)) => :mdi,
                               :date) |>
               comb -> unique(comb, [:id, :dinmilk])
@@ -531,7 +538,6 @@ end
 
 function gridsearch(df_healthy::DataFrame,
                     df_sick::DataFrame,
-                    genomic_info::DataFrame,
                     list::Union{Vector{T}, UnitRange{T}},
                     criterion::Symbol = :mdi,
                     mdi_threshold::AbstractFloat = 1.4;
@@ -549,7 +555,7 @@ function gridsearch(df_healthy::DataFrame,
                      "group (sick)" => Vector{Float64}(undef, len))
     for (i, n) in enumerate(list)
         mse_train, mse_test, coefs, _ = categorize_and_fit(
-            df_healthy, df_sick, genomic_info, n, criterion, mdi_threshold, 
+            df_healthy, df_sick, n, criterion, mdi_threshold, 
             fm=fm, split_by=split_by, split_date=split_date, train_size=train_size, 
             test_size=test_size, random_state=random_state
         )
@@ -569,7 +575,6 @@ end
 
 function categorize_and_fit(df_healthy::DataFrame, 
                             df_sick::DataFrame,
-                            genomic_info::DataFrame,
                             n::Integer,
                             criterion::Symbol,
                             mdi_threshold::AbstractFloat;
@@ -583,28 +588,6 @@ function categorize_and_fit(df_healthy::DataFrame,
     df = categorize_data(df_healthy, df_sick, before=2, after=n, criterion=criterion, mdi_threshold=mdi_threshold)
     # Fill missing logyield values with 0
     df[ismissing.(df.logyield), :logyield] .= 0.0
-    # Join genomic info with data
-    df = leftjoin(df, genomic_info, on=:id)
-    df[!,:GPTAM] = convert.(Union{Float64, Missing},df[!,:GPTAM])
-    # --- Discard data ---
-    # Discard cow data of lactation number ≥ 4 as we are unable to estimate the GPTAM values for
-    # cows of those lactation numbers
-    df = @subset(df, :lactnum .∈ Ref([1,2,3]))
-    # --- Fill missing GPTAM values ---
-    with_GPTAM = df[.!ismissing.(df.GPTAM),:] |> 
-                z -> groupby(z, :id) |> 
-                z -> combine(z, :id, :lactnum, :GPTAM, :normalized_GPTAM, :yield => mean => :yield) |> 
-                unique
-    null_GPTAM = df[ismissing.(df.GPTAM),:] |> 
-                z -> groupby(z, :id) |> 
-                z -> combine(z, :id, :lactnum, :GPTAM, :normalized_GPTAM, :yield => mean => :yield)
-    # Model fit for model to predict GPTAM
-    fm₀ = @formula(GPTAM ~ yield + lactnum)
-    model = fit(LinearModel, fm₀, with_GPTAM)
-    # Use fitted model to fill missing GPTAM values
-    idx = ismissing.(df.GPTAM)
-    df[idx, :GPTAM] = predict(model, null_GPTAM)
-    df[idx, :normalized_GPTAM] = (df[idx, :GPTAM] .- mean_GPTAM) / std_GPTAM
 
     # ----- Model Fitting -----
     df[df.status .== "sick", :status] .= "unhealthy"
@@ -658,17 +641,36 @@ path = "../../../data/analytical/cows-analytic.csv"
 df = CSV.read(path, DataFrame)
 df[!, :id] = categorical(df.id)
 df[!, :lactnum] = categorical(df.lactnum)
-# Read genomic info data file (55 out of 695 cows have GPTAM values after data cleaning)
+# Read genomic info data file 
+# 190 out of 2401 cows have GPTAM values before data cleaning
+# 55 out of 695 cows have GPTAM values after data cleaning
 path = "../../../data/misc/genomic_info.csv"
 genomic_info = CSV.read(path, DataFrame) |> x -> x[!, [:id, :GPTAM]]
+genomic_info[!, :GPTAM] = convert(Vector{Float64}, genomic_info[!, :GPTAM])
 mean_GPTAM = mean(genomic_info.GPTAM)
 std_GPTAM = std(genomic_info.GPTAM)
-genomic_info[!, :normalized_GPTAM] = (genomic_info.GPTAM .- mean_GPTAM) / std_GPTAM
+# Left join milk_summary info with GPTAM info
+milk_summary = groupby(df, [:id, :date])|>      # Get daily total milk
+               grps -> combine(grps, :lactnum, :yield => sum => :yield) |>
+               unique |>
+               milk -> groupby(milk, :id) |>    # Get average daily milk
+               grps -> combine(grps, :lactnum, :yield => mean => :mean_yield) |>
+               unique |>
+               df -> leftjoin(df, genomic_info, on = :id) |>    # Left join with GPTAM info
+               df -> @subset(df, :lactnum .∈ Ref([1,2,3]))
+# Impute GPTAM values using linear regression
+fm₀ = @formula(GPTAM ~ 1 + lactnum + mean_yield)
+model = fit(LinearModel, fm₀, milk_summary)
+idx = ismissing.(milk_summary.GPTAM)
+milk_summary[idx, :GPTAM] = predict(model, milk_summary[idx,:])
+milk_summary[!, :normalized_GPTAM] = (milk_summary.GPTAM .- mean_GPTAM) / std_GPTAM
+# Left join milk summary with original dataset
+df = leftjoin(df, milk_summary, on = [:id, :lactnum])
 
 ## ----- Data Processing -----
 # Keep data of cows with records of their first 30 days in milk, discard the rest of the
 # data.
-filtered, summary = filter_cows(df)
+filtered, summary_data = filter_cows(df)
 # -- Remove certain cows that have missing teats --
 # Cows: 9064 (LR), 49236 (RF), 7984 (RF), 42130 (LR), and 48695 (LR)
 filtered = @subset(filtered, :id .∉ Ref([9064, 49236, 7984, 42130, 48695]))
@@ -691,12 +693,17 @@ df_healthy₁ = aggregate_data(df_healthy₁)       # Data where all cows have M
 df_healthy₂ = aggregate_data(df_healthy₂)       # Data where all cows have MDi<1.8 at all times
 df_sick₁ = aggregate_data(df_sick₁)             # Data where cows have MDi≥1.4 at certain times
 df_sick₂ = aggregate_data(df_sick₂)             # Data where cows have MDi≥1.8 at certain times
+# --- Split to train and test sets ---
+train_healthy₁, test_healthy₁ = train_test_split(df_healthy₁, :random, train_size = 0.8, test_size = 0.2, random_state = 1234)
+train_healthy₂, test_healthy₂ = train_test_split(df_healthy₂, :random, train_size = 0.8, test_size = 0.2, random_state = 1234)
+train_sick₁, test_sick₁ = train_test_split(df_sick₁, :random, train_size = 0.8, test_size = 0.2, random_state = 1234)
+train_sick₂, test_sick₂ = train_test_split(df_sick₂, :random, train_size = 0.8, test_size = 0.2, random_state = 1234)
 
 ## ----- Grid search for best model fit -----
 dinmilk_range = 0:100
 # Grid search for mdi_threshold = 1.4
-best₁, list₁ = gridsearch(df_healthy₁, df_sick₁, genomic_info, dinmilk_range, :mdi, mdi_threshold₁,
-                          split_by=:random, train_size=0.9, test_size=0.1, random_state=1234)
+best₁, list₁ = gridsearch(train_healthy₁, train_sick₁, dinmilk_range, :mdi, mdi_threshold₁,
+                          split_by=:random, train_size=0.9, test_size=0.1, random_state=123)
 p1 = plot(dinmilk_range, list₁.mse["train"], xlabel = "k days after event", ylabel = "MSE", 
           label = "(train) vs mid-high MDi cows", lc = 1, ls = :dash, title = "Model MSEs by n days", 
           titlefontsize = 10, xguidefontsize = 8, yguidefontsize = 8,
@@ -711,8 +718,8 @@ p3 = plot(dinmilk_range, abs.(list₁.coef["group (sick)"]), label = "β₅ when
           title = "Coef. magnitude for group=sick (β₅)",
           titlefontsize = 7, xguidefontsize = 8, yguidefontsize = 8, legend=:topleft)
 # Grid search for mdi_threshold = 1.8
-best₂, list₂ = gridsearch(df_healthy₁, df_sick₂, genomic_info, dinmilk_range, :mdi, mdi_threshold₂,
-                          split_by=:random, train_size=0.9, test_size=0.1, random_state=1234)
+best₂, list₂ = gridsearch(train_healthy₁, train_sick₂, dinmilk_range, :mdi, mdi_threshold₂,
+                          split_by=:random, train_size=0.9, test_size=0.1, random_state=123)
 plot!(p1, dinmilk_range, list₂.mse["train"], label = "(train) vs high MDi cows", lc = 2, ls = :dash)
 plot!(p1, dinmilk_range, list₂.mse["test"], label = "(test) vs high MDi cows", lc = 2, ls = :solid)
 plot!(p2, dinmilk_range, abs.(list₂.coef["status (unhealthy)"]), label = "β₄ when vs high MDi cows")
@@ -723,7 +730,7 @@ p5 = plot(p1, p4, layout=(1,2))
 savefig(p5, "gridsearch.png")
 
 ## ----- Search for `k` days for best model fit -----
-dinmilk_range = 0:7
+dinmilk_range = 0:10
 n_trials = 5000
 random_states = sample(1:10000, n_trials, replace=false)
 n_days₁ = Vector{Int64}(undef, n_trials); n_days₂ = Vector{Int64}(undef, n_trials)
@@ -732,9 +739,9 @@ coefs₁ = Dict{String, Vector{Float64}}(); coefs₂ = Dict{String, Vector{Float
 coefs₁["status (unhealthy)"] = Float64[]; coefs₂["status (unhealthy)"] = Float64[]
 coefs₁["group (sick)"] = Float64[]; coefs₂["group (sick)"] = Float64[]
 for (i, random_state) in enumerate(random_states)
-    best₁, list₁ = gridsearch(df_healthy₁, df_sick₁, genomic_info, dinmilk_range, :mdi, mdi_threshold₁,
+    best₁, list₁ = gridsearch(train_healthy₁, train_sick₁, dinmilk_range, :mdi, mdi_threshold₁,
                               split_by=:random, train_size=0.9, test_size=0.1, random_state=random_state)
-    best₂, list₂ = gridsearch(df_healthy₁, df_sick₂, genomic_info, dinmilk_range, :mdi, mdi_threshold₂,
+    best₂, list₂ = gridsearch(train_healthy₁, train_sick₂, dinmilk_range, :mdi, mdi_threshold₂,
                               split_by=:random, train_size=0.9, test_size=0.1, random_state=random_state)
     n_days₁[i] = best₁.n; n_days₂[i] = best₂.n
     mses₁[i] = best₁.mse.test; mses₂[i] = best₂.mse.test
@@ -813,8 +820,8 @@ CI3₂ = ConfidenceIntervals(μ₄₂ + μ₅₂, √(σ₄₂^2 + σ₅₂^2), 
 
 ## ----- Model fit without accounting cow status -----
 fm = @formula(logyield ~ 1 + log(dinmilk) + dinmilk + lactnum + status + group + normalized_GPTAM)
-mse_train₁, mse_test₁, coefs₁, model₁ = categorize_and_fit(df_healthy₁, df_sick₁, genomic_info, 1, :mdi, mdi_threshold₁, fm=fm, split_by=:random, train_size=9, test_size=1, random_state=1234)
-mse_train₂, mse_test₂, coefs₂, model₂ = categorize_and_fit(df_healthy₁, df_sick₂, genomic_info, 1, :mdi, mdi_threshold₂, fm=fm, split_by=:random, train_size=9, test_size=1, random_state=1234)
+mse_train₁, mse_test₁, coefs₁, model₁ = categorize_and_fit(train_healthy₁, train_sick₁, 1, :mdi, mdi_threshold₁, fm=fm, split_by=:random, train_size=9, test_size=1, random_state=1234)
+mse_train₂, mse_test₂, coefs₂, model₂ = categorize_and_fit(train_healthy₁, train_sick₂, 1, :mdi, mdi_threshold₂, fm=fm, split_by=:random, train_size=9, test_size=1, random_state=1234)
 # Model predictions for average cows
 dfₕ = DataFrame(dinmilk = repeat(1:200,3), lactnum = repeat([1,2,3],inner=200), group="healthy", status="healthy", normalized_GPTAM=0)
 dfₛ = DataFrame(dinmilk = repeat(1:200,3), lactnum = repeat([1,2,3],inner=200), group="sick", status="unhealthy", normalized_GPTAM=0)
@@ -860,3 +867,8 @@ plot!(p2, dinmilk_range, exp.(list₂.coef["overall"]),
       fillcolor=:red, fillrange=0.7, fillalpha=0.2)
 p3 = plot(p1, p2, layout = (2,1))
 savefig(p3, "yield_compare.png")
+
+## --- Refit data on train set and make prediction on test set ---
+fm = @formula(logyield ~ 1 + log(dinmilk) + dinmilk + lactnum + status + group + normalized_GPTAM)
+mse_train₁, mse_test₁, coefs₁, model₁ = categorize_and_fit(train_healthy₁, train_sick₁, 1, :mdi, mdi_threshold₁, fm=fm, split_by=:random, train_size=8, test_size=2, random_state=1234)
+mse_train₂, mse_test₂, coefs₂, model₂ = categorize_and_fit(train_healthy₁, train_sick₂, 1, :mdi, mdi_threshold₁, fm=fm, split_by=:random, train_size=8, test_size=2, random_state=1234)
