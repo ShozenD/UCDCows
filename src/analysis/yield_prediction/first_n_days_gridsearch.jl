@@ -101,7 +101,7 @@ function ishealthyfirstNdays(data::DataFrame,
     # Determine if cow has been sick in the first N days
     if criterion == :mdi
         # --- Check if all MDi values are below threshold ---
-        low_mdi = all(skipmissing(df.mdi .< threshold))
+        low_mdi = (all ∘ skipmissing)(df.mdi .< threshold)
         # --- Check if there's a gap between the first recorded day and the N-th day ---
         # Get all unique dates within first N days
         dts = unique(df.date[df.dinmilk .≤ N])
@@ -513,27 +513,6 @@ function isunhealthyday(dy::T, dys::Vector{T};
         end
     end
     return false
-end
-
-# Print model statistics
-function print_modelstatistics(model::StatsModels.TableRegressionModel, data::DataFrame)
-    # model statistics
-    println("Model Statistics:")
-    display(model)
-
-    # train data
-    degree_of_freedom = dof(model)
-    n_observation = nobs(model)
-    r² = r2(model)
-    pred = predict(model, data)
-    error = data.logyield - pred
-    sse = sum(skipmissing(error) .^ 2)
-    mse = sse / dof_residual(model)
-    println("\nMetrics:")
-    println("Degree of freedom: $degree_of_freedom")
-    println("Number of observations: $n_observation")
-    println("R²: $r²")
-    println("Mean squared error: $(round(mse, digits=4))")
 end
 
 function gridsearch(df_healthy::DataFrame,
