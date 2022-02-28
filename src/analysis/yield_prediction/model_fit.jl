@@ -11,21 +11,21 @@ function gridsearch(df_healthy::DataFrame,
                     random_state::Union{Integer, Nothing} = nothing) where T<:Integer
     # Grid search through list
     len = length(list)
-    mse_list = Dict("train" => Vector{Float64}(undef, len),
+    mae_list = Dict("train" => Vector{Float64}(undef, len),
                     "test" => Vector{Float64}(undef, len))
     mpe_list = Dict("train" => Vector{Float64}(undef, len),
                     "test" => Vector{Float64}(undef, len))
     coef_list = Dict("status (unhealthy)" => Vector{Float64}(undef, len),
                      "group (sick)" => Vector{Float64}(undef, len))
     for (i, n) in enumerate(list)
-        mse_train, mse_test, mpe_train, mpe_test, coefs, _ = categorize_and_fit(
+        mae_train, mae_test, mpe_train, mpe_test, coefs, _ = categorize_and_fit(
             df_healthy, df_sick, n, criterion, mdi_threshold, 
             fm=fm, split_by=split_by, split_date=split_date, train_size=train_size, 
             test_size=test_size, random_state=random_state
         )
-        mse_list["train"][i] = mse_train
+        mae_list["train"][i] = mae_train
         mpe_list["train"][i] = mpe_train
-        mse_list["test"][i] = mse_test
+        mae_list["test"][i] = mae_test
         mpe_list["test"][i] = mpe_test
         coef_list["status (unhealthy)"][i] = coefs["status (unhealthy)"]
         coef_list["group (sick)"][i] = coefs["group (sick)"]
@@ -33,12 +33,12 @@ function gridsearch(df_healthy::DataFrame,
     # Return the best parameter along with its results
     idx = argmin(mpe_list["test"])
     best_n = list[idx]
-    best_mse = (train = mse_list["train"][idx], test = mse_list["test"][idx])
+    best_mae = (train = mae_list["train"][idx], test = mae_list["test"][idx])
     best_mpe = (train = mpe_list["train"][idx], test = mpe_list["test"][idx])
     best_coef = Dict("status (unhealthy)" => coef_list["status (unhealthy)"][idx],
                      "group (sick)" => coef_list["group (sick)"][idx])
-    return (n = best_n, mse = best_mse, mpe = best_mpe, coef = best_coef), 
-           (mse = mse_list, mpe = mpe_list, coef = coef_list)
+    return (n = best_n, mae = best_mae, mpe = best_mpe, coef = best_coef), 
+           (mae = mae_list, mpe = mpe_list, coef = coef_list)
 end
 
 function categorize_and_fit(df_healthy::DataFrame, 
@@ -67,13 +67,12 @@ function categorize_and_fit(df_healthy::DataFrame,
     # ----- Error Computation and Coefficient Extraction -----
     coefs = Dict("status (unhealthy)" => coef(model)[6], "group (sick)" => coef(model)[7])
     logyield_pred = predict(model, df_train) |> x -> convert.(Float64, x)
-    mse_train = sum(residuals(model).^2) / dof_residual(model)
+    mae_train = mean(abs.(exp.(logyield_pred) - df_train.yield))
     mpe_train = compute_mpe(logyield_pred, df_train.logyield, transform = :log)
     logyield_pred = predict(model, df_test) |> x -> convert.(Float64, x)
-    err_test = predict(model, df_test) - df_test.logyield
-    mse_test = sum(err_test.^2) / (nrow(df_test) - dof(model) + 1)
+    mae_test = mean(abs.(exp.(logyield_pred) - df_test.yield))
     mpe_test = compute_mpe(logyield_pred, df_test.logyield, transform = :log)
-    return (mse_train, mse_test, mpe_train, mpe_test, coefs, model)
+    return (mae_train, mae_test, mpe_train, mpe_test, coefs, model)
 end
 
 """

@@ -22,6 +22,7 @@ using DataFrames,
 # ========== Functions ==========
 include("data_cleaning.jl")
 include("model_fit.jl")
+include("visualization.jl")
 
 ## ========== Workflow ==========
 # ----- Import Data -----
@@ -87,22 +88,19 @@ df_healthy₂ = aggregate_data(df_healthy₂)       # Data where all cows have M
 df_sick₁ = aggregate_data(df_sick₁)             # Data where cows have MDi≥1.4 at certain times
 df_sick₂ = aggregate_data(df_sick₂)             # Data where cows have MDi≥1.8 at certain times
 # --- Split to train and test sets ---
-train_healthy₁, test_healthy₁ = train_test_split(df_healthy₁, :random, train_size = 0.8, test_size = 0.2, random_state = 1234)
-train_healthy₂, test_healthy₂ = train_test_split(df_healthy₂, :random, train_size = 0.8, test_size = 0.2, random_state = 1234)
-train_sick₁, test_sick₁ = train_test_split(df_sick₁, :random, train_size = 0.8, test_size = 0.2, random_state = 1234)
-train_sick₂, test_sick₂ = train_test_split(df_sick₂, :random, train_size = 0.8, test_size = 0.2, random_state = 1234)
+train_healthy₁, test_healthy₁ = train_test_split(df_healthy₁, :date, split_date = Date(2021,11,1))
+train_healthy₂, test_healthy₂ = train_test_split(df_healthy₂, :date, split_date = Date(2021,11,1))
+train_sick₁, test_sick₁ = train_test_split(df_sick₁, :date, split_date = Date(2021,11,1))
+train_sick₂, test_sick₂ = train_test_split(df_sick₂, :date, split_date = Date(2021,11,1))
 
 ## ----- Grid search for best model fit -----
 @info "Running: Grid search"
 dinmilk_range = 0:100
+split_date = Date(2021, 10, 1)
 # Grid search for mdi_threshold = 1.4
 best₁, list₁ = gridsearch(train_healthy₁, train_sick₁, dinmilk_range, :mdi, mdi_threshold₁,
-                          split_by=:random, train_size=0.9, test_size=0.1, random_state=123)
-p1 = plot(dinmilk_range, list₁.mse["train"], xlabel = "k days after event", ylabel = "MSE", 
-          label = "(train) vs mid-high MDi cows", lc = 1, ls = :dash, title = "Model MSEs by n days", 
-          titlefontsize = 10, xguidefontsize = 8, yguidefontsize = 8,
-          legend=:topright)
-plot!(p1, dinmilk_range, list₁.mse["test"], label = "(test) vs mid-high MDi cows", lc = 1, ls = :solid)
+                          split_by=:date, split_date = split_date)
+p1 = plot_error(dinmilk_range, list₁, :mpe)
 p2 = plot(dinmilk_range, abs.(list₁.coef["status (unhealthy)"]), label = "β₄ when vs mid-high MDi cows",
           xlabel = "k days after event", ylabel = "|coef.|", 
           title = "Coef. magnitude for status=unhealthy (β₄)", 
@@ -113,9 +111,9 @@ p3 = plot(dinmilk_range, abs.(list₁.coef["group (sick)"]), label = "β₅ when
           titlefontsize = 7, xguidefontsize = 8, yguidefontsize = 8, legend=:topleft)
 # Grid search for mdi_threshold = 1.8
 best₂, list₂ = gridsearch(train_healthy₁, train_sick₂, dinmilk_range, :mdi, mdi_threshold₂,
-                          split_by=:random, train_size=0.9, test_size=0.1, random_state=123)
-plot!(p1, dinmilk_range, list₂.mse["train"], label = "(train) vs high MDi cows", lc = 2, ls = :dash)
-plot!(p1, dinmilk_range, list₂.mse["test"], label = "(test) vs high MDi cows", lc = 2, ls = :solid)
+                          split_by=:date, split_date = split_date)
+plot_error!(p1, dinmilk_range, list₂, :mpe, :black)
+vline!(p1, [best₁.n, best₂.n], color = :red, label = "")
 plot!(p2, dinmilk_range, abs.(list₂.coef["status (unhealthy)"]), label = "β₄ when vs high MDi cows")
 plot!(p3, dinmilk_range, abs.(list₂.coef["group (sick)"]), label = "β₅ when vs high MDi cows")
 # Overall plot
@@ -123,14 +121,50 @@ p4 = plot(p2, p3, layout=(2,1))
 p5 = plot(p1, p4, layout=(1,2))
 savefig(p5, "gridsearch.png")
 
-p6 = plot(dinmilk_range, list₁.mpe["train"], xlabel = "k days after event", ylabel = "MPE", 
-          label = "(train) vs mid-high MDi cows", lc = 1, ls = :dash, title = "Model MPEs by n days", 
-          titlefontsize = 10, xguidefontsize = 8, yguidefontsize = 8,
-          legend=:topright)
-plot!(p6, dinmilk_range, list₁.mpe["test"], label = "(test) vs mid-high MDi cows", lc = 1, ls = :solid)
-plot!(p6, dinmilk_range, list₂.mpe["train"], label = "(train) vs high MDi cows", lc = 2, ls = :dash)
-plot!(p6, dinmilk_range, list₂.mpe["test"], label = "(test) vs high MDi cows", lc = 2, ls = :solid)
-
+## Plot an example of true vs predicted milk yield for a specific cow in each category.
+# Healthy: 8244, 8906, 8329, 8169, 7796
+# Mid high: 44923, 45890, 45808, 45440
+# High: 45808, 9008, 9007
+fm = @formula(logyield ~ 1 + log(dinmilk) + dinmilk + lactnum + status + group + normalized_GPTAM)
+_, _, _, _, _, model = categorize_and_fit(
+    df_healthy₁, df_sick₁, 1, :mdi, mdi_threshold₁, fm = fm, split_by = :date, split_date = split_date
+)
+# Normal MDI
+subdf1 = @subset(df_healthy₁, :id .== 7796) |> x -> sort(x, :date)
+subdf2 = @subset(df_healthy₁, :id .== 8906) |> x -> sort(x, :date)
+subdf3 = @subset(df_healthy₁, :id .== 8329) |> x -> sort(x, :date)
+p1 = true_vs_fitted(subdf1, model, split_date = split_date, mdi_threshold = mdi_threshold₁) |> plt -> ylims!(0,200)
+p2 = true_vs_fitted(subdf2, model, split_date = split_date, mdi_threshold = mdi_threshold₁) |> plt -> ylims!(0,200)
+p3 = true_vs_fitted(subdf3, model, split_date = split_date, mdi_threshold = mdi_threshold₁) |> plt -> ylims!(0,200)
+p4 = plot(p1, p2, p3, layout = (1,3))
+# Mid High MDI
+subdf1 = @subset(df_sick₁, :id .== 45808) |> x -> sort(x, :date)
+subdf2 = @subset(df_sick₁, :id .== 9008) |> x -> sort(x, :date)
+subdf3 = @subset(df_sick₁, :id .== 9007) |> x -> sort(x, :date)
+p1 = true_vs_fitted(subdf1, model, split_date = split_date, mdi_threshold = mdi_threshold₁) |> plt -> ylims!(0,200)
+p2 = true_vs_fitted(subdf2, model, split_date = split_date, mdi_threshold = mdi_threshold₁) |> plt -> ylims!(0,200)
+p3 = true_vs_fitted(subdf3, model, split_date = split_date, mdi_threshold = mdi_threshold₁) |> plt -> ylims!(0,200)
+p5 = plot(p1, p2, p3, layout = (1,3))
+# Model fit with MDI threshold 1.8
+_, _, _, _, _, model = categorize_and_fit(
+    df_healthy₁, df_sick₂, 1, :mdi, mdi_threshold₂, fm = fm, split_by = :date, split_date = split_date
+)
+# Normal MDI
+subdf1 = @subset(df_healthy₁, :id .== 8244) |> x -> sort(x, :date)
+subdf2 = @subset(df_healthy₁, :id .== 8906) |> x -> sort(x, :date)
+subdf3 = @subset(df_healthy₁, :id .== 8329) |> x -> sort(x, :date)
+p1 = true_vs_fitted(subdf1, model, split_date = split_date, mdi_threshold = mdi_threshold₁) |> plt -> ylims!(0,200)
+p2 = true_vs_fitted(subdf2, model, split_date = split_date, mdi_threshold = mdi_threshold₁) |> plt -> ylims!(0,200)
+p3 = true_vs_fitted(subdf3, model, split_date = split_date, mdi_threshold = mdi_threshold₁) |> plt -> ylims!(0,200)
+p6 = plot(p1, p2, p3, layout = (1,3))
+# Mid High MDI
+subdf1 = @subset(df_sick₂, :id .== 45808) |> x -> sort(x, :date)
+subdf2 = @subset(df_sick₂, :id .== 9008) |> x -> sort(x, :date)
+subdf3 = @subset(df_sick₂, :id .== 9007) |> x -> sort(x, :date)
+p1 = true_vs_fitted(subdf1, model, split_date = split_date, mdi_threshold = mdi_threshold₂) |> plt -> ylims!(0,200)
+p2 = true_vs_fitted(subdf2, model, split_date = split_date, mdi_threshold = mdi_threshold₂) |> plt -> ylims!(0,200)
+p3 = true_vs_fitted(subdf3, model, split_date = split_date, mdi_threshold = mdi_threshold₂) |> plt -> ylims!(0,200)
+p7 = plot(p1, p2, p3, layout = (1,3))
 
 ## ----- Search for `k` days for best model fit -----
 @info "Running: Repeated Grid Search"
@@ -138,7 +172,7 @@ dinmilk_range = 0:100
 n_trials = 100
 random_states = sample(1:10000, n_trials, replace=false)
 n_days₁ = Vector{Int64}(undef, n_trials); n_days₂ = Vector{Int64}(undef, n_trials)
-mses₁ = Vector{Float64}(undef, n_trials); mses₂ = Vector{Float64}(undef, n_trials)
+maes₁ = Vector{Float64}(undef, n_trials); maes₂ = Vector{Float64}(undef, n_trials)
 mpes₁ = Vector{Float64}(undef, n_trials); mpes₂ = Vector{Float64}(undef, n_trials)
 coefs₁ = Dict{String, Vector{Float64}}(); coefs₂ = Dict{String, Vector{Float64}}()
 coefs₁["status (unhealthy)"] = Float64[]; coefs₂["status (unhealthy)"] = Float64[]
@@ -150,7 +184,7 @@ for (i, random_state) in enumerate(random_states)
     b₂, l₂ = gridsearch(train_healthy₁, train_sick₂, dinmilk_range, :mdi, mdi_threshold₂,
                               split_by=:random, train_size=0.9, test_size=0.1, random_state=random_state)
     n_days₁[i] = b₁.n; n_days₂[i] = b₂.n
-    mses₁[i] = b₁.mse.test; mses₂[i] = b₂.mse.test
+    maes₁[i] = b₁.mae.test; maes₂[i] = b₂.mae.test
     mpes₁[i] = b₁.mpe.test; mpes₂[i] = b₂.mpe.test
     push!(coefs₁["status (unhealthy)"], b₁.coef["status (unhealthy)"])
     push!(coefs₂["status (unhealthy)"], b₂.coef["status (unhealthy)"])
@@ -164,8 +198,8 @@ p1 = plot(title="β₄ when vs mid-high MDi cows", titlefontsize=10, legend=:out
 p2 = plot(title="β₄ when vs high MDi cows", titlefontsize=10, legend=:outerright)
 p3 = plot(title="β₅ when vs mid-high MDi cows", titlefontsize=10, legend=:outerright) 
 p4 = plot(title="β₅ when vs high MDi cows", titlefontsize=10, legend=:outerright)
-p5 = plot(title="MSE when vs mid-high MDi cows", titlefontsize=10, legend=:outerright) 
-p6 = plot(title="MSE when vs high MDi cows", titlefontsize=10, legend=:outerright)
+p5 = plot(title="MAE when vs mid-high MDi cows", titlefontsize=10, legend=:outerright) 
+p6 = plot(title="MAE when vs high MDi cows", titlefontsize=10, legend=:outerright)
 p7 = plot(title="MPE when vs mid-high MDi cows", titlefontsize=10, legend=:outerright) 
 p8 = plot(title="MPE when vs high MDi cows", titlefontsize=10, legend=:outerright)
 for i in unique([d₁; d₂])
@@ -174,13 +208,13 @@ for i in unique([d₁; d₂])
     if i in d₁ && count(==(i), n_days₁) > 1
         plot!(p1, ash(coefs₁["status (unhealthy)"][n_days₁ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6, lw=lw, la=la)
         plot!(p3, ash(coefs₁["group (sick)"][n_days₁ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6, lw=lw, la=la)
-        plot!(p5, ash(mses₁[n_days₁ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6, lw=lw, la=la)
+        plot!(p5, ash(maes₁[n_days₁ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6, lw=lw, la=la)
         plot!(p7, ash(mpes₁[n_days₁ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6, lw=lw, la=la)
     end
     if i in d₂ && count(==(i), n_days₂) > 1
         plot!(p2, ash(coefs₂["status (unhealthy)"][n_days₂ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6, lw=lw, la=la)
         plot!(p4, ash(coefs₂["group (sick)"][n_days₂ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6, lw=lw, la=la)
-        plot!(p6, ash(mses₂[n_days₂ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6, lw=lw, la=la)
+        plot!(p6, ash(maes₂[n_days₂ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6, lw=lw, la=la)
         plot!(p8, ash(mpes₂[n_days₂ .== i], m=50), hist=false, label="k=$i", xtickfontsize=6, lw=lw, la=la)
     end
 end
@@ -232,8 +266,8 @@ CI3₂ = ConfidenceIntervals(μ₄₂ + μ₅₂, √(σ₄₂^2 + σ₅₂^2), 
 
 ## ----- Model fit without accounting cow status -----
 fm = @formula(logyield ~ 1 + log(dinmilk) + dinmilk + lactnum + status + group + normalized_GPTAM)
-mse_train₁, mse_test₁, coefs₁, model₁ = categorize_and_fit(train_healthy₁, train_sick₁, 1, :mdi, mdi_threshold₁, fm=fm, split_by=:random, train_size=9, test_size=1, random_state=1234)
-mse_train₂, mse_test₂, coefs₂, model₂ = categorize_and_fit(train_healthy₁, train_sick₂, 1, :mdi, mdi_threshold₂, fm=fm, split_by=:random, train_size=9, test_size=1, random_state=1234)
+mae_train₁, mae_test₁, coefs₁, model₁ = categorize_and_fit(train_healthy₁, train_sick₁, 1, :mdi, mdi_threshold₁, fm=fm, split_by=:random, train_size=9, test_size=1, random_state=1234)
+mae_train₂, mae_test₂, coefs₂, model₂ = categorize_and_fit(train_healthy₁, train_sick₂, 1, :mdi, mdi_threshold₂, fm=fm, split_by=:random, train_size=9, test_size=1, random_state=1234)
 # Model predictions for average cows
 dfₕ = DataFrame(dinmilk = repeat(1:200,3), lactnum = repeat([1,2,3],inner=200), group="healthy", status="healthy", normalized_GPTAM=0)
 dfₛ = DataFrame(dinmilk = repeat(1:200,3), lactnum = repeat([1,2,3],inner=200), group="sick", status="unhealthy", normalized_GPTAM=0)
@@ -284,5 +318,5 @@ savefig(p3, "yield_compare.png")
 ## --- Refit data on train set and make prediction on test set ---
 @info "Test prediction"
 fm = @formula(logyield ~ 1 + log(dinmilk) + dinmilk + lactnum + status + group + normalized_GPTAM)
-mse_train₁, mse_test₁, coefs₁, model₁ = categorize_and_fit(train_healthy₁, train_sick₁, 1, :mdi, mdi_threshold₁, fm=fm, split_by=:random, train_size=8, test_size=2, random_state=1234)
-mse_train₂, mse_test₂, coefs₂, model₂ = categorize_and_fit(train_healthy₁, train_sick₂, 1, :mdi, mdi_threshold₁, fm=fm, split_by=:random, train_size=8, test_size=2, random_state=1234)
+mae_train₁, mae_test₁, coefs₁, model₁ = categorize_and_fit(train_healthy₁, train_sick₁, 1, :mdi, mdi_threshold₁, fm=fm, split_by=:random, train_size=8, test_size=2, random_state=1234)
+mae_train₂, mae_test₂, coefs₂, model₂ = categorize_and_fit(train_healthy₁, train_sick₂, 1, :mdi, mdi_threshold₁, fm=fm, split_by=:random, train_size=8, test_size=2, random_state=1234)
