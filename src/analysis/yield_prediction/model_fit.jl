@@ -1,52 +1,51 @@
-function gridsearch(df_healthy::DataFrame,
-                    df_sick::DataFrame,
-                    list::Union{Vector{T}, UnitRange{T}},
-                    criterion::Symbol = :mdi,
-                    mdi_threshold::AbstractFloat = 1.4;
-                    fm::FormulaTerm = @formula(logyield ~ 1 + log(dinmilk) + dinmilk + lactnum + status + group + normalized_GPTAM),
-                    split_by::Symbol = :date,
-                    split_date::Union{Date, Nothing} = nothing, 
-                    train_size::Union{Real, Nothing} = nothing, 
-                    test_size::Union{Real, Nothing} = nothing, 
-                    random_state::Union{Integer, Nothing} = nothing) where T<:Integer
-    # Grid search through list
-    len = length(list)
-    mae_list = Dict("train" => Vector{Float64}(undef, len),
-                    "test" => Vector{Float64}(undef, len))
-    mpe_list = Dict("train" => Vector{Float64}(undef, len),
-                    "test" => Vector{Float64}(undef, len))
-    coef_list = Dict("status (unhealthy)" => Vector{Float64}(undef, len),
-                     "group (sick)" => Vector{Float64}(undef, len))
-    for (i, n) in enumerate(list)
-        mae_train, mae_test, mpe_train, mpe_test, coefs, _ = categorize_and_fit(
-            df_healthy, df_sick, n, criterion, mdi_threshold, 
-            fm=fm, split_by=split_by, split_date=split_date, train_size=train_size, 
-            test_size=test_size, random_state=random_state
-        )
-        mae_list["train"][i] = mae_train
-        mpe_list["train"][i] = mpe_train
-        mae_list["test"][i] = mae_test
-        mpe_list["test"][i] = mpe_test
-        coef_list["status (unhealthy)"][i] = coefs["status (unhealthy)"]
-        coef_list["group (sick)"][i] = coefs["group (sick)"]
-    end
-    # Return the best parameter along with its results
-    idx = argmin(mpe_list["test"])
-    best_n = list[idx]
-    best_mae = (train = mae_list["train"][idx], test = mae_list["test"][idx])
-    best_mpe = (train = mpe_list["train"][idx], test = mpe_list["test"][idx])
-    best_coef = Dict("status (unhealthy)" => coef_list["status (unhealthy)"][idx],
-                     "group (sick)" => coef_list["group (sick)"][idx])
-    return (n = best_n, mae = best_mae, mpe = best_mpe, coef = best_coef), 
-           (mae = mae_list, mpe = mpe_list, coef = coef_list)
-end
-
+# function gridsearch(df_healthy::DataFrame,
+#                     df_sick::DataFrame,
+#                     list::Union{Vector{T}, UnitRange{T}},
+#                     criterion::Symbol = :mdi,
+#                     mdi_threshold::AbstractFloat = 1.4;
+#                     fm::FormulaTerm = @formula(logyield ~ 1 + log(dinmilk) + dinmilk + lactnum + status + group + normalized_GPTAM),
+#                     split_by::Symbol = :date,
+#                     split_date::Union{Date, Nothing} = nothing, 
+#                     train_size::Union{Real, Nothing} = nothing, 
+#                     test_size::Union{Real, Nothing} = nothing, 
+#                     random_state::Union{Integer, Nothing} = nothing) where T<:Integer
+#     # Grid search through list
+#     len = length(list)
+#     mae_list = Dict("train" => Vector{Float64}(undef, len),
+#                     "test" => Vector{Float64}(undef, len))
+#     mpe_list = Dict("train" => Vector{Float64}(undef, len),
+#                     "test" => Vector{Float64}(undef, len))
+#     coef_list = Dict("status (unhealthy)" => Vector{Float64}(undef, len),
+#                      "group (sick)" => Vector{Float64}(undef, len))
+#     for (i, n) in enumerate(list)
+#         mae_train, mae_test, mpe_train, mpe_test, coefs, _ = categorize_and_fit(
+#             df_healthy, df_sick, n, criterion, mdi_threshold, 
+#             fm=fm, split_by=split_by, split_date=split_date, train_size=train_size, 
+#             test_size=test_size, random_state=random_state
+#         )
+#         mae_list["train"][i] = mae_train
+#         mpe_list["train"][i] = mpe_train
+#         mae_list["test"][i] = mae_test
+#         mpe_list["test"][i] = mpe_test
+#         coef_list["status (unhealthy)"][i] = coefs["status (unhealthy)"]
+#         coef_list["group (sick)"][i] = coefs["group (sick)"]
+#     end
+#     # Return the best parameter along with its results
+#     idx = argmin(mpe_list["test"])
+#     best_n = list[idx]
+#     best_mae = (train = mae_list["train"][idx], test = mae_list["test"][idx])
+#     best_mpe = (train = mpe_list["train"][idx], test = mpe_list["test"][idx])
+#     best_coef = Dict("status (unhealthy)" => coef_list["status (unhealthy)"][idx],
+#                      "group (sick)" => coef_list["group (sick)"][idx])
+#     return (n = best_n, mae = best_mae, mpe = best_mpe, coef = best_coef), 
+#            (mae = mae_list, mpe = mpe_list, coef = coef_list)
+# end
+# TODO: Fix case where subdf_train or subdf_test has zero rows
 function categorize_and_fit(df_healthy::DataFrame, 
                             df_sick::DataFrame,
                             n::Integer,
                             criterion::Symbol,
                             mdi_threshold::AbstractFloat;
-                            fm::FormulaTerm = @formula(logyield ~ 1 + log(dinmilk) + dinmilk + lactnum + status + group + normalized_GPTAM),
                             split_by::Symbol = :date,
                             split_date::Union{Date, Nothing} = nothing, 
                             train_size::Union{Real, Nothing} = nothing, 
@@ -54,29 +53,77 @@ function categorize_and_fit(df_healthy::DataFrame,
                             random_state::Union{Integer, Nothing} = nothing)
     # --- Categorize data into groups and health status ---
     df = categorize_data(df_healthy, df_sick, before=2, after=n, criterion=criterion, mdi_threshold=mdi_threshold)
-    # Fill missing logyield values with 0
-    df[ismissing.(df.logyield), :logyield] .= 0.0
+    df[ismissing.(df.logyield), :logyield] .= 0.0       # Fill missing logyield values with 0
+    df[df.status .== "sick", :status] .= "unhealthy"    # Sick and unhealthy status considered as unhealthy
 
     # ----- Model Fitting -----
-    df[df.status .== "sick", :status] .= "unhealthy"
     # Split model to train-test sets
     df_train, df_test = train_test_split(df, split_by, split_date=split_date, train_size=train_size,
                                          test_size=test_size, random_state=random_state)
-    model = fit(LinearModel, fm, df_train)
+    cow_ids = unique(df_train.id)
+    results = []
+    for cow_id in cow_ids
+        subdf_train = @subset(df_train, :id .== cow_id)
+        subdf_test = @subset(df_test, :id .== cow_id)
+        nrow(subdf_train) > 0 || continue
+        nrow(subdf_test) > 0 || continue
 
-    # ----- Error Computation and Coefficient Extraction -----
-    coefs = Dict("status (unhealthy)" => coef(model)[6], "group (sick)" => coef(model)[7])
-    logyield_pred = predict(model, df_train) |> x -> convert.(Float64, x)
-    mae_train = mean(abs.(exp.(logyield_pred) - df_train.yield))
-    mpe_train = compute_mpe(logyield_pred, df_train.logyield, transform = :log)
-    logyield_pred = predict(model, df_test) |> x -> convert.(Float64, x)
-    mae_test = mean(abs.(exp.(logyield_pred) - df_test.yield))
-    mpe_test = compute_mpe(logyield_pred, df_test.logyield, transform = :log)
-    return (mae_train, mae_test, mpe_train, mpe_test, coefs, model)
+        group = unique(subdf_train.group)[1]
+        if group == "sick"
+            "healthy" ∈ subdf_train.status || continue
+            "unhealthy" ∈ subdf_train.status || continue
+            "healthy" ∈ subdf_test.status || continue
+            "unhealthy" ∈ subdf_test.status || continue
+        end
+        fm = group == "sick" ? @formula(logyield ~ 1 + log(dinmilk) + dinmilk + status) : @formula(logyield ~ 1 + log(dinmilk) + dinmilk)
+        result = model_fit(subdf_train, subdf_test, fm)
+        push!(results, result)
+    end
+
+    return vcat(results...)
+end
+
+function model_fit(df_train::AbstractDataFrame, df_test::AbstractDataFrame, fm::FormulaTerm)
+    group = unique(df_train.group)[1]
+    @assert (length ∘ unique)(df_train.id) == 1
+    @assert (length ∘ unique)(df_train.group) == 1
+    @assert (length ∘ unique)(df_test.id) == 1
+    @assert (length ∘ unique)(df_test.group) == 1
+    @assert unique(df_train.id)[1] == unique(df_test.id)[1]
+    @assert unique(df_train.group)[1] == unique(df_test.group)[1]
+    @assert (group == "healthy" && Term(:status) ∉ fm.rhs) || (group == "sick" && Term(:status) ∈ fm.rhs)
+
+    cow_id = unique(df_train.id)[1]
+    train_size = nrow(df_train)
+    test_size = nrow(df_test)
+    model = fit(LinearModel, fm, df_train)
+    β₀, β₁, β₂ = coef(model)[1:3]
+    β₃ = (length ∘ coef)(model) == 4 ? coef(model)[4] : missing
+    yield_train_pred = predict(model, df_train) |> x -> exp.(x) |> x -> convert.(Float64, x)
+    mae_train = meanad(yield_train_pred, df_train.yield)
+    mpe_train = compute_mpe(yield_train_pred, df_train.yield, transform = :none)
+    yield_test_pred = predict(model, df_test) |> x -> exp.(x) |> x -> convert.(Float64, x)
+    mae_test = meanad(yield_test_pred, df_test.yield)
+    mpe_test = compute_mpe(yield_test_pred, df_test.yield, transform = :none)
+
+    return DataFrame(:id => cow_id,
+                     :group => group,
+                     :trainSize => train_size,
+                     :testSize => test_size,
+                     :β₀ => β₀,
+                     :β₁ => β₁,
+                     :β₂ => β₂,
+                     :β₃ => β₃,
+                     :MAETrain => mae_train,
+                     :MAETest => mae_test,
+                     :MPETrain => mpe_train,
+                     :MPETest => mpe_test)
 end
 
 """
     train_test_split(df, by[; split_date, train_size, test_size, random_state])
+
+Split data into train and test sets.
 
 # Arguments
 - `df::DataFrame`
@@ -88,6 +135,8 @@ end
 - `test_size::Union{Real, Nothing}`
 - `random_state::Union{Integer, Nothing}`
 """
+# TODO: Add train_test_split method by proportion. Eg: First 80% data is train, remaining
+# TODO: 20% is test
 function train_test_split(df::DataFrame, by::Symbol; 
                           split_date::Union{Date, Nothing} = nothing, 
                           train_size::Union{Real, Nothing} = nothing, 

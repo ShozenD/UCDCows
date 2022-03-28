@@ -331,9 +331,6 @@ function aggregate_data(data::DataFrame)
                               :lactnum,
                               :yield => sum => :yield,
                               :yield => (x -> logyield=log(sum(x)+1)) => :logyield,
-                              :condtot => mean => :condtot,
-                              :GPTAM,
-                              :normalized_GPTAM,
                               :mdi => (x -> mdi=maximum(skipmissing(x), init=-1)) => :mdi,
                               :date) |>
               comb -> unique(comb, [:id, :dinmilk])
