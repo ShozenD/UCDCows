@@ -67,4 +67,5 @@ df_sick₂ = aggregate_data(df_sick₂)             # Data where cows have MDi�
 # Mid high: 44923, 45890, 45808, 45440
 # High: 45808, 9008, 9007
 split_date = Date(2021, 11, 1)
-results = categorize_and_fit(df_healthy₁, df_sick₁, 1, :mdi, mdi_threshold₁, split_by = :date, split_date = split_date)
+resultsByDate = categorize_and_fit(df_healthy₁, df_sick₁, 1, :mdi, mdi_threshold₁, split_by = :date, split_date = split_date)
+resultsByProp = categorize_and_fit(df_healthy₁, df_sick₁, 1, :mdi, mdi_threshold₁, split_by = :proportion, train_size = 0.8, test_size = 0.2)

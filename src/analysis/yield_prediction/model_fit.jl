@@ -46,10 +46,10 @@ function categorize_and_fit(df_healthy::DataFrame,
                             n::Integer,
                             criterion::Symbol,
                             mdi_threshold::AbstractFloat;
-                            split_by::Symbol = :date,
+                            split_by::Symbol = :proportion,
                             split_date::Union{Date, Nothing} = nothing, 
-                            train_size::Union{Real, Nothing} = nothing, 
-                            test_size::Union{Real, Nothing} = nothing, 
+                            train_size::Union{Real, Nothing} = 0.8, 
+                            test_size::Union{Real, Nothing} = 0.2, 
                             random_state::Union{Integer, Nothing} = nothing)
     # --- Categorize data into groups and health status ---
     df = categorize_data(df_healthy, df_sick, before=2, after=n, criterion=criterion, mdi_threshold=mdi_threshold)
@@ -96,15 +96,30 @@ function model_fit(df_train::AbstractDataFrame, df_test::AbstractDataFrame, fm::
     cow_id = unique(df_train.id)[1]
     train_size = nrow(df_train)
     test_size = nrow(df_test)
-    model = fit(LinearModel, fm, df_train)
-    β₀, β₁, β₂ = coef(model)[1:3]
-    β₃ = (length ∘ coef)(model) == 4 ? coef(model)[4] : missing
-    yield_train_pred = predict(model, df_train) |> x -> exp.(x) |> x -> convert.(Float64, x)
-    mae_train = meanad(yield_train_pred, df_train.yield)
-    mpe_train = compute_mpe(yield_train_pred, df_train.yield, transform = :none)
-    yield_test_pred = predict(model, df_test) |> x -> exp.(x) |> x -> convert.(Float64, x)
-    mae_test = meanad(yield_test_pred, df_test.yield)
-    mpe_test = compute_mpe(yield_test_pred, df_test.yield, transform = :none)
+    if train_size > 0
+        model = fit(LinearModel, fm, df_train)
+        β₀, β₁, β₂ = coef(model)[1:3]
+        β₃ = (length ∘ coef)(model) == 4 ? coef(model)[4] : missing
+        yield_train_pred = predict(model, df_train) |> x -> exp.(x) |> x -> convert.(Float64, x)
+        mae_train = meanad(yield_train_pred, df_train.yield)
+        mpe_train = compute_mpe(yield_train_pred, df_train.yield, transform = :none)
+    else
+        β₀ = missing
+        β₁ = missing
+        β₂ = missing
+        β₃ = missing
+        mae_train = missing
+        mpe_train = missing
+    end
+
+    if train_size > 0 && test_size > 0
+        yield_test_pred = predict(model, df_test) |> x -> exp.(x) |> x -> convert.(Float64, x)
+        mae_test = meanad(yield_test_pred, df_test.yield)
+        mpe_test = compute_mpe(yield_test_pred, df_test.yield, transform = :none)
+    else
+        mae_test = missing
+        mpe_test = missing
+    end
 
     return DataFrame(:id => cow_id,
                      :group => group,
@@ -135,19 +150,38 @@ Split data into train and test sets.
 - `test_size::Union{Real, Nothing}`
 - `random_state::Union{Integer, Nothing}`
 """
-# TODO: Add train_test_split method by proportion. Eg: First 80% data is train, remaining
-# TODO: 20% is test
 function train_test_split(df::DataFrame, by::Symbol; 
                           split_date::Union{Date, Nothing} = nothing, 
                           train_size::Union{Real, Nothing} = nothing, 
                           test_size::Union{Real, Nothing} = nothing, 
                           random_state::Union{Integer, Nothing} = nothing)
-    @assert by ∈ [:date, :random]
+    @assert by ∈ [:date, :random, :proportion]
 
     if by == :date
         @assert !isnothing(split_date)
         df_train = @subset(df, :date .< split_date)
         df_test = @subset(df, :date .≥ split_date)
+    elseif by == :proportion
+        @assert !isnothing(train_size)
+        @assert !isnothing(test_size)
+        @assert train_size > 0
+        @assert test_size > 0
+        train_prop = train_size / (train_size + test_size)
+        subdf_by_cowid = groupby(df, [:id, :lactnum])
+        df_train_list = Vector{DataFrame}()
+        df_test_list = Vector{DataFrame}()
+        for subdf in subdf_by_cowid
+            subdf = DataFrame(subdf)
+            row_count = nrow(subdf)
+            T = typeof(row_count)
+            subdf_train_size = ceil(T, row_count * train_prop)
+            subdf_train = subdf[1:subdf_train_size, :]
+            subdf_test = subdf[(subdf_train_size+1):end, :]
+            push!(df_train_list, subdf_train)
+            push!(df_test_list, subdf_test)
+        end
+        df_train = vcat(df_train_list...)
+        df_test = vcat(df_test_list...)
     else
         @assert !isnothing(train_size)
         @assert !isnothing(test_size)
