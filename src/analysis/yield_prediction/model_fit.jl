@@ -40,17 +40,19 @@
 #     return (n = best_n, mae = best_mae, mpe = best_mpe, coef = best_coef), 
 #            (mae = mae_list, mpe = mpe_list, coef = coef_list)
 # end
-# TODO: Fix case where subdf_train or subdf_test has zero rows
 function categorize_and_fit(df_healthy::DataFrame, 
                             df_sick::DataFrame,
                             n::Integer,
                             criterion::Symbol,
-                            mdi_threshold::AbstractFloat;
+                            mdi_threshold::AbstractFloat,
+                            args...;
+                            modelType::UnionAll = LinearModel,
                             split_by::Symbol = :proportion,
                             split_date::Union{Date, Nothing} = nothing, 
                             train_size::Union{Real, Nothing} = 0.8, 
                             test_size::Union{Real, Nothing} = 0.2, 
-                            random_state::Union{Integer, Nothing} = nothing)
+                            random_state::Union{Integer, Nothing} = nothing,
+                            kwargs...)
     # --- Categorize data into groups and health status ---
     df = categorize_data(df_healthy, df_sick, before=2, after=n, criterion=criterion, mdi_threshold=mdi_threshold)
     df[ismissing.(df.logyield), :logyield] .= 0.0       # Fill missing logyield values with 0
@@ -76,14 +78,19 @@ function categorize_and_fit(df_healthy::DataFrame,
             "unhealthy" ∈ subdf_test.status || continue
         end
         fm = group == "sick" ? @formula(logyield ~ 1 + log(dinmilk) + dinmilk + status) : @formula(logyield ~ 1 + log(dinmilk) + dinmilk)
-        result = model_fit(subdf_train, subdf_test, fm)
+        result = model_fit(subdf_train, subdf_test, fm, args...; modelType = modelType, kwargs...)
         push!(results, result)
     end
 
     return vcat(results...)
 end
 
-function model_fit(df_train::AbstractDataFrame, df_test::AbstractDataFrame, fm::FormulaTerm)
+function model_fit(df_train::AbstractDataFrame, 
+                   df_test::AbstractDataFrame, 
+                   fm::FormulaTerm,
+                   args...;
+                   modelType::UnionAll = LinearModel,
+                   kwargs...)
     group = unique(df_train.group)[1]
     @assert (length ∘ unique)(df_train.id) == 1
     @assert (length ∘ unique)(df_train.group) == 1
@@ -92,27 +99,31 @@ function model_fit(df_train::AbstractDataFrame, df_test::AbstractDataFrame, fm::
     @assert unique(df_train.id)[1] == unique(df_test.id)[1]
     @assert unique(df_train.group)[1] == unique(df_test.group)[1]
     @assert (group == "healthy" && Term(:status) ∉ fm.rhs) || (group == "sick" && Term(:status) ∈ fm.rhs)
+    @assert modelType ∈ [LinearModel, RobustLinearModel]
 
     cow_id = unique(df_train.id)[1]
     train_size = nrow(df_train)
     test_size = nrow(df_test)
-    if train_size > 0
-        model = fit(LinearModel, fm, df_train)
+    model = missing
+    β₀ = missing
+    β₁ = missing
+    β₂ = missing
+    β₃ = missing
+    mae_train = missing
+    mpe_train = missing
+    try
+        model = fit(modelType, fm, df_train, args...; kwargs...)
         β₀, β₁, β₂ = coef(model)[1:3]
         β₃ = (length ∘ coef)(model) == 4 ? coef(model)[4] : missing
         yield_train_pred = predict(model, df_train) |> x -> exp.(x) |> x -> convert.(Float64, x)
         mae_train = meanad(yield_train_pred, df_train.yield)
         mpe_train = compute_mpe(yield_train_pred, df_train.yield, transform = :none)
-    else
-        β₀ = missing
-        β₁ = missing
-        β₂ = missing
-        β₃ = missing
-        mae_train = missing
-        mpe_train = missing
+    catch e
+        @warn "Unable to fit model for cow $cow_id."
+        @info e
     end
 
-    if train_size > 0 && test_size > 0
+    if !ismissing(model) && test_size > 0
         yield_test_pred = predict(model, df_test) |> x -> exp.(x) |> x -> convert.(Float64, x)
         mae_test = meanad(yield_test_pred, df_test.yield)
         mpe_test = compute_mpe(yield_test_pred, df_test.yield, transform = :none)

@@ -43,9 +43,9 @@ function createsummarystatistics(df::DataFrame, α::T) where T<:AbstractFloat
     @assert df.group[1] ∈ ["sick", "healthy"]
 
     _group_ = df.group[1]
-    _β₀_ = createconfidenceinterval(df.β₀, α)
-    _β₁_ = createconfidenceinterval(df.β₁, α)
-    _β₂_ = createconfidenceinterval(df.β₂, α)
+    _β₀_ = createconfidenceinterval(convert.(T, df.β₀), α)
+    _β₁_ = createconfidenceinterval(convert.(T, df.β₁), α)
+    _β₂_ = createconfidenceinterval(convert.(T, df.β₂), α)
     _β₃_ = _group_ == "sick" ? createconfidenceinterval(convert.(T, df.β₃), α) : missing
     _maetrain_ = createconfidenceinterval(df.MAETrain, α)
     _maetest_ = createconfidenceinterval(df.MAETest, α)
