@@ -93,6 +93,7 @@ function model_fit(df_train::AbstractDataFrame,
                    kwargs...)
     group = unique(df_train.group)[1]
     @assert (length ∘ unique)(df_train.id) == 1
+    @assert (length ∘ unique)(df_train.lactnum) == 1
     @assert (length ∘ unique)(df_train.group) == 1
     @assert (length ∘ unique)(df_test.id) == 1
     @assert (length ∘ unique)(df_test.group) == 1
@@ -102,6 +103,7 @@ function model_fit(df_train::AbstractDataFrame,
     @assert modelType ∈ [LinearModel, RobustLinearModel]
 
     cow_id = unique(df_train.id)[1]
+    lact_num = unique(df_train.lactnum)[1]
     train_size = nrow(df_train)
     test_size = nrow(df_test)
     model = missing
@@ -133,6 +135,7 @@ function model_fit(df_train::AbstractDataFrame,
     end
 
     return DataFrame(:id => cow_id,
+                     :lactationNumber => lact_num,
                      :group => group,
                      :trainSize => train_size,
                      :testSize => test_size,
