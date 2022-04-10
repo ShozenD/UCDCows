@@ -70,41 +70,7 @@ df_sick₂ = aggregate_data(df_sick₂)             # Data where cows have MDi�
 # Mid high: 44923, 45890, 45808, 45440
 # High: 45808, 9008, 9007
 @info "Model Fitting"
-results = categorize_and_fit(df_healthy₁, df_sick₂, 10, :mdi, mdi_threshold₁, RobustModels.L2Estimator(), modelType = RobustLinearModel, split_by = :proportion, train_size = 0.95, test_size = 0.05, ridgeλ=0.25)
+results = categorize_and_fit(df_healthy₁, df_sick₂, 1, :mdi, mdi_threshold₂, RobustModels.L2Estimator(), modelType = RobustLinearModel, split_by = :proportion, train_size = 0.95, test_size = 0.05, ridgeλ=0.25)
 
 @info "Analysis of Results"
-MPEThreshold = 0.3
-@info "Total eligible samples $(sum(results.MPETest .< MPEThreshold)) (out of $(nrow(results)))"
-α = 0.05
-lactationNumbers = (sort ∘ unique)(results.lactationNumber)
-for lactationNumber in lactationNumbers
-    @info "\tAnalysis on lactation $lactationNumber"
-    
-    resultsHealthy = @subset(results, :group .== "healthy", :lactationNumber .== lactationNumber, :MPETest .< MPEThreshold)
-    resultsSick = @subset(results, :group .== "sick", :lactationNumber .== lactationNumber, :MPETest .< MPEThreshold)
-    
-    @info "\t\tMPE Threshold: $MPEThreshold"
-    @info "\t\tNumber of healthy data: $(nrow(resultsHealthy)); Number of sick data: $(nrow(resultsSick))"
-
-    pvalue_β₀ = (pvalue ∘ UnequalVarianceTTest)(resultsHealthyuiiiiiiiiiiiii.β₀, resultsSick.β₀)
-    pvalue_β₁ = (pvalue ∘ UnequalVarianceTTest)(resultsHealthy.β₁, resultsSick.β₁)
-    pvalue_β₂ = (pvalue ∘ UnequalVarianceTTest)(resultsHealthy.β₂, resultsSick.β₂)
-    pvalue_β₃ = (pvalue ∘ OneSampleTTest ∘ convert)(Vector{Float64}, resultsSick.β₃)
-
-    if pvalue_β₀ < α
-        @info "\t\tp-value for β₀ < α ($pvalue_β₀)"
-    end
-    if pvalue_β₁ < α
-        @info "\t\tp-value for β₁ < α ($pvalue_β₁)"
-    end
-    if pvalue_β₂ < α
-        @info "\t\tp-value for β₂ < α ($pvalue_β₂)"
-    end
-    if pvalue_β₃ < α
-        @info "\t\tp-value for β₃ < α ($pvalue_β₃)"
-    end
-    if (pvalue_β₀ ≥ α) & (pvalue_β₁ ≥ α) & (pvalue_β₂ ≥ α) & (pvalue_β₃ ≥ α)
-        @info "\t\tNo significant differences between healthy and sick samples."
-    end
-
-endm,#=   nrftlw2ky =#
+summaryresults(results, verbose=2)

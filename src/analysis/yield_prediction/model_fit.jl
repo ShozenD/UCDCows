@@ -74,8 +74,6 @@ function categorize_and_fit(df_healthy::DataFrame,
         if group == "sick"
             "healthy" ∈ subdf_train.status || continue
             "unhealthy" ∈ subdf_train.status || continue
-            "healthy" ∈ subdf_test.status || continue
-            "unhealthy" ∈ subdf_test.status || continue
         end
         fm = group == "sick" ? @formula(logyield ~ 1 + log(dinmilk) + dinmilk + status) : @formula(logyield ~ 1 + log(dinmilk) + dinmilk)
         result = model_fit(subdf_train, subdf_test, fm, args...; modelType = modelType, kwargs...)
