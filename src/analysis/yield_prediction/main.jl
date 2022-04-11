@@ -70,7 +70,11 @@ df_sick₂ = aggregate_data(df_sick₂)             # Data where cows have MDi�
 # Mid high: 44923, 45890, 45808, 45440
 # High: 45808, 9008, 9007
 @info "Model Fitting"
-results = categorize_and_fit(df_healthy₁, df_sick₂, 1, :mdi, mdi_threshold₂, RobustModels.L2Estimator(), modelType = RobustLinearModel, split_by = :proportion, train_size = 0.95, test_size = 0.05, ridgeλ=0.25)
+results₁ = categorize_and_fit(df_healthy₁, df_sick₁, 1, :mdi, mdi_threshold₁, RobustModels.L2Estimator(), modelType = RobustLinearModel, split_by = :proportion, train_size = 0.95, test_size = 0.05, ridgeλ=0.25)
+results₂ = categorize_and_fit(df_healthy₁, df_sick₂, 1, :mdi, mdi_threshold₂, RobustModels.L2Estimator(), modelType = RobustLinearModel, split_by = :proportion, train_size = 0.95, test_size = 0.05, ridgeλ=0.25)
 
 @info "Analysis of Results"
-summaryresults(results, verbose=2)
+@info "Low-MDI vs mid-high-MDI"
+summaryresults(results₁, verbose=1, tail=:single)
+@info "Low-MDI vs hgh-MDI"
+summaryresults(results₂, verbose=1, tail=:single)

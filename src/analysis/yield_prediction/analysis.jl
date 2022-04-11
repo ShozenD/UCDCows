@@ -1,8 +1,10 @@
 function summaryresults(results::DataFrame; 
                         α::AbstractFloat = 0.01, 
                         MPEThreshold::AbstractFloat = 0.3, 
-                        verbose::Integer = 1)
+                        verbose::Integer = 1,
+                        tail::Symbol = :both)
     @assert verbose ∈ [0,1,2]
+    @assert tail ∈ [:both, :single]
     @info "Total eligible samples $(sum(results.MPETest .< MPEThreshold)) (out of $(nrow(results)))"
     @info "Total eligible healthy samples $(sum((results.MPETest .< 0.3) .& (results.group .== "healthy"))) (out of $(sum((results.group .== "healthy"))))"
     @info "Total eligible sick samples $(sum((results.MPETest .< 0.3) .& (results.group .== "sick"))) (out of $(sum(results.group .== "sick")))"
@@ -26,26 +28,40 @@ function summaryresults(results::DataFrame;
         histβ₃ = histogram(resultsSick.β₃, label="", title="β₃(L$lactationNumber)", alpha=0.5, color="blue")
         append!(histogramList, [histβ₀, histβ₁, histβ₂, histβ₃])
     
-        pvalue_β₀ = (pvalue ∘ UnequalVarianceTTest)(resultsHealthy.β₀, resultsSick.β₀)
-        pvalue_β₁ = (pvalue ∘ UnequalVarianceTTest)(resultsHealthy.β₁, resultsSick.β₁)
-        pvalue_β₂ = (pvalue ∘ UnequalVarianceTTest)(resultsHealthy.β₂, resultsSick.β₂)
-        pvalue_β₃ = (pvalue ∘ OneSampleTTest ∘ convert)(Vector{Float64}, resultsSick.β₃)
+        testβ₀ = UnequalVarianceTTest(resultsHealthy.β₀, resultsSick.β₀)
+        testβ₁ = UnequalVarianceTTest(resultsHealthy.β₁, resultsSick.β₁)
+        testβ₂ = UnequalVarianceTTest(resultsHealthy.β₂, resultsSick.β₂)
+        testβ₃ = (OneSampleTTest ∘ convert)(Vector{Float64}, resultsSick.β₃)
+
+        pvalue_β₀ = tail == :both ? pvalue(testβ₀, tail=:both) : pvalue(testβ₀, tail=:right)
+        pvalue_β₁ = tail == :both ? pvalue(testβ₁, tail=:both) : pvalue(testβ₁, tail=:left)
+        pvalue_β₂ = tail == :both ? pvalue(testβ₂, tail=:both) : pvalue(testβ₂, tail=:right)
+        pvalue_β₃ = tail == :both ? pvalue(testβ₃, tail=:both) : pvalue(testβ₃, tail=:left)
         
+        # @info "Mean: $(mean(resultsHealthy.β₀))  $(mean(resultsSick.β₀))\t SD: $(std(resultsHealthy.β₀))  $(std(resultsSick.β₀))， pvalue: $pvalue_β₀"
+        # @info "Mean: $(mean(resultsHealthy.β₁))  $(mean(resultsSick.β₁))\t SD: $(std(resultsHealthy.β₁))  $(std(resultsSick.β₁))， pvalue: $pvalue_β₁"
+        # @info "Mean: $(mean(resultsHealthy.β₂))  $(mean(resultsSick.β₂))\t SD: $(std(resultsHealthy.β₂))  $(std(resultsSick.β₂))， pvalue: $pvalue_β₂"
+        # @info "Mean: $(mean(resultsSick.β₃))\t SD: $(std(resultsSick.β₃))， pvalue: $pvalue_β₃"
+        # @info UnequalVarianceTTest(resultsHealthy.β₀, resultsSick.β₀)
+        # @info UnequalVarianceTTest(resultsHealthy.β₁, resultsSick.β₁)
+        # @info UnequalVarianceTTest(resultsHealthy.β₂, resultsSick.β₂)
+        # @info (OneSampleTTest ∘ convert)(Vector{Float64}, resultsSick.β₃)
+
         if pvalue_β₀ < α
             verbose == 0 || @info "\t\tp-value for β₀ < α ($pvalue_β₀)"
-            verbose ∈ [0,1] || @info UnequalVarianceTTest(resultsHealthy.β₀, resultsSick.β₀)
+            verbose ∈ [0,1] || @info testβ₀
         end
         if pvalue_β₁ < α
             verbose == 0 || @info "\t\tp-value for β₁ < α ($pvalue_β₁)"
-            verbose ∈ [0,1] || @info UnequalVarianceTTest(resultsHealthy.β₁, resultsSick.β₁)
+            verbose ∈ [0,1] || @info testβ₁
         end
         if pvalue_β₂ < α
             verbose == 0 || @info "\t\tp-value for β₂ < α ($pvalue_β₂)"
-            verbose ∈ [0,1] || @info UnequalVarianceTTest(resultsHealthy.β₂, resultsSick.β₂)
+            verbose ∈ [0,1] || @info testβ₂
         end
         if pvalue_β₃ < α
             verbose == 0 || @info "\t\tp-value for β₃ < α ($pvalue_β₃)"
-            verbose ∈ [0,1] || @info (OneSampleTTest ∘ convert)(Vector{Float64}, resultsSick.β₃)
+            verbose ∈ [0,1] || @info testβ₃
         end
         if (pvalue_β₀ ≥ α) & (pvalue_β₁ ≥ α) & (pvalue_β₂ ≥ α) & (pvalue_β₃ ≥ α)
             verbose == 0 || @info "\t\tNo significant differences between healthy and sick samples."
