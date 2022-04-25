@@ -64,6 +64,12 @@ df_healthy₁ = aggregate_data(df_healthy₁)       # Data where all cows have M
 df_healthy₂ = aggregate_data(df_healthy₂)       # Data where all cows have MDi<1.8 at all times
 df_sick₁ = aggregate_data(df_sick₁)             # Data where cows have MDi≥1.4 at certain times
 df_sick₂ = aggregate_data(df_sick₂)             # Data where cows have MDi≥1.8 at certain times
+# --- df_sick₁ will only contain cows with max MDI between 1.4 and 1.8 ---
+temp = groupby(df_sick₁, :id) |> 
+       groups -> combine(groups, :mdi => (y -> mdi=maximum(skipmissing(y), init=-1)) => :maxMdi) |>
+       comb -> unique(comb, :id)
+cow_list = temp.id[temp.maxMdi .< 1.8]
+df_sick₁ = df_sick₁[df_sick₁.id .∈ Ref(cow_list),:]
 
 ## Plot an example of true vs predicted milk yield for a specific cow in each category.
 # Healthy: 8244, 8906, 8329, 8169, 7796
@@ -74,7 +80,7 @@ results₁ = categorize_and_fit(df_healthy₁, df_sick₁, 1, :mdi, mdi_threshol
 results₂ = categorize_and_fit(df_healthy₁, df_sick₂, 1, :mdi, mdi_threshold₂, RobustModels.L2Estimator(), modelType = RobustLinearModel, split_by = :proportion, train_size = 0.95, test_size = 0.05, ridgeλ=0.25)
 
 @info "Analysis of Results"
-@info "Low-MDI vs mid-high-MDI"
-summaryresults(results₁, verbose=1, tail=:single)
-@info "Low-MDI vs hgh-MDI"
-summaryresults(results₂, verbose=1, tail=:single)
+@info "Low-MDI vs high-MDI"
+summaryresults(results₁, α=0.01, verbose=2, tail=:single)
+@info "Low-MDI vs extreme-MDI"
+summaryresults(results₂, α=0.01, verbose=2, tail=:single)
